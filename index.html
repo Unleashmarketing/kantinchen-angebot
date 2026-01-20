@@ -3,404 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angebots-Generator Unleash</title>
+    <title>Angebots-Generator Unleash V2</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
         :root {
-            --primary-color: #e67e22; /* Das Orange aus dem Logo */
+            --primary-color: #e67e22;
             --text-color: #333;
-            --gray-light: #f4f4f4;
-            --border-color: #ddd;
+            --bg-color: #eef2f5;
         }
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background-color: #eef2f5;
+            background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
+            padding: 0;
             color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- EINGABE MASKE (Links) --- */
-        .controls {
-            width: 350px;
+        /* --- WIZARD UI (Der geführte Prozess) --- */
+        .wizard-container {
             background: white;
             padding: 20px;
-            border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            height: fit-content;
-            overflow-y: auto;
-            max-height: 95vh;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
         }
 
-        .controls h2 { margin-top: 0; color: var(--primary-color); }
+        .step-content {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            gap: 30px;
+        }
+
+        /* Linke Spalte: Eingabemasken */
+        .input-panel {
+            flex: 0 0 350px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .hidden { display: none !important; }
+
+        h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;}
+        
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .form-group input, .form-group textarea, .form-group select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
         }
-        
-        button {
-            background-color: var(--primary-color);
-            color: white;
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
             border: none;
-            padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
-            width: 100%;
             font-weight: bold;
-            margin-top: 10px;
+            font-size: 14px;
+            width: 100%;
+            transition: background 0.2s;
         }
-        button:hover { background-color: #d35400; }
-        button.secondary { background-color: #555; margin-top: 5px; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #d35400; }
+        
+        .btn-secondary { background-color: #95a5a6; color: white; margin-top: 10px; }
+        .btn-secondary:hover { background-color: #7f8c8d; }
 
-        /* --- PAPIER VORSCHAU (Rechts) --- */
-        .page-container {
+        .btn-success { background-color: #27ae60; color: white; margin-top: 20px; font-size: 16px;}
+        .btn-success:hover { background-color: #219150; }
+
+        /* Rechte Spalte: Vorschau */
+        .preview-panel {
             flex-grow: 1;
+            background: #ccc;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 100px);
             display: flex;
             justify-content: center;
+            border-radius: 8px;
         }
 
+        /* --- PAPIER DESIGN (A4) --- */
         #page {
             background: white;
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm; /* Standard Rand */
-            padding-top: 15mm;
-            box-sizing: border-box;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20mm 20mm 15mm 20mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
             position: relative;
-            display: flex;
-            flex-direction: column;
+            box-sizing: border-box; 
         }
 
-        /* --- PDF DESIGN STYLES --- */
-        
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10mm;
-            border-bottom: 2px solid black;
-            padding-bottom: 10px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-        }
+        /* PDF Typografie */
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10mm; border-bottom: 2px solid black; padding-bottom: 10px; }
+        .logo { font-size: 24px; font-weight: bold; color: #333; }
         .logo span { color: var(--primary-color); }
-        /* Hier ein Platzhalter für das Logo-Bild */
-        .logo img { height: 40px; } 
-
-        .doc-title {
-            font-size: 24px;
-            color: var(--primary-color);
-            text-align: right;
-            font-weight: 400;
-        }
-
-        /* Sender Zeile klein */
-        .sender-small {
-            font-size: 8pt;
-            color: var(--primary-color);
-            margin-bottom: 2mm;
-            text-decoration: underline; /* Optional, wie im Fensterkuvert */
-        }
-
-        /* Adressfeld */
-        .recipient-box {
-            font-size: 11pt;
-            margin-bottom: 15mm;
-            line-height: 1.4;
-        }
-
-        /* Meta Daten Zeile (Betreff, Datum etc) */
-        .meta-data {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10mm;
-            font-size: 10pt;
-        }
+        .doc-title { font-size: 24px; color: var(--primary-color); text-align: right; }
+        
+        .sender-small { font-size: 8pt; color: var(--primary-color); margin-bottom: 5mm; text-decoration: underline; }
+        .recipient-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 25mm; }
+        
+        .meta-data { display: flex; justify-content: space-between; margin-bottom: 10mm; font-size: 10pt; }
         .meta-col { width: 25%; }
         .meta-col strong { display: block; font-weight: bold; color: #555; font-size: 9pt; }
-
-        .subject { font-weight: bold; font-size: 12pt; margin-bottom: 5mm; }
+        
         .salutation { margin-bottom: 5mm; font-size: 10pt; }
 
         /* Tabelle */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10pt;
-            margin-bottom: 10mm;
-        }
-
+        table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 10mm; }
         thead { background-color: #eee; }
-        th { text-align: left; padding: 8px 5px; font-weight: bold; border-bottom: 1px solid #ccc; }
+        th { text-align: left; padding: 8px 5px; font-weight: bold; border-bottom: 1px solid #ccc; -webkit-print-color-adjust: exact; }
         td { padding: 10px 5px; vertical-align: top; border-bottom: 1px solid #eee; }
-
-        /* Spaltenbreiten justieren */
-        th:nth-child(1) { width: 5%; } /* Pos */
-        th:nth-child(2) { width: 45%; } /* Beschreibung */
-        th:nth-child(3) { width: 10%; text-align: right;} /* Menge */
-        th:nth-child(4) { width: 10%; } /* Einheit */
-        th:nth-child(5) { width: 10%; } /* USt */
-        th:nth-child(6) { width: 10%; text-align: right;} /* Einzel */
-        th:nth-child(7) { width: 10%; text-align: right;} /* Gesamt */
-        
         td:nth-child(3), td:nth-child(6), td:nth-child(7) { text-align: right; }
 
-        .item-title { font-weight: bold; display: block; margin-bottom: 2px; }
-        .item-desc { font-size: 9pt; color: #555; white-space: pre-line; }
+        /* Löschen Button Design */
+        .delete-btn {
+            background: #e74c3c; color: white; border: none; 
+            border-radius: 50%; width: 20px; height: 20px; 
+            cursor: pointer; font-size: 10px; line-height: 20px; 
+            text-align: center; padding: 0;
+        }
 
-        /* Summenblock */
-        .totals {
-            margin-left: auto;
-            width: 40%;
-            font-size: 11pt;
-        }
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-        }
-        .total-row.final {
-            font-weight: bold;
-            font-size: 13pt;
-            border-top: 1px solid #ddd;
-            margin-top: 5px;
-            padding-top: 10px;
-        }
+        /* Summen */
+        .totals { margin-left: auto; width: 40%; font-size: 11pt; }
+        .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+        .total-row.final { font-weight: bold; font-size: 13pt; border-top: 1px solid #ddd; margin-top: 5px; padding-top: 10px; }
 
         /* Footer */
-        footer {
-            position: absolute;
-            bottom: 15mm;
-            left: 20mm;
-            right: 20mm;
-            font-size: 7pt;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
-        .footer-col { width: 30%; }
-        .footer-col strong { color: #333; display: block; margin-bottom: 2px; }
+        footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; font-size: 7pt; color: #555; display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 10px; }
+        .footer-col strong { color: #333; display: block; }
         .page-num { position: absolute; right: 0; bottom: -10mm; font-size: 8pt; }
 
-        /* DRUCK STYLES */
+        /* --- DRUCK EINSTELLUNGEN (Wichtig für PDF Download) --- */
         @media print {
-            body { background-color: white; margin: 0; padding: 0; }
-            .controls { display: none; }
-            .page-container { display: block; }
-            #page { 
-                box-shadow: none; 
-                margin: 0; 
-                width: 100%; 
-                height: 100%; 
-                padding: 15mm 20mm; /* Druckränder */
-            }
-            /* Erzwingt Hintergrundfarben (für den grauen Tabellenkopf) */
+            body { background: white; height: auto; display: block; }
+            .wizard-container, .input-panel, .btn { display: none !important; } /* Versteckt alles außer das Blatt */
+            .preview-panel { padding: 0; background: white; height: auto; display: block; }
+            #page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
+            
+            /* HIER WIRD DAS X VERSTECKT */
+            .no-print { display: none !important; }
+            
+            /* Stellt sicher, dass Hintergrundfarben (graue Tabelle) gedruckt werden */
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page { margin: 20mm; size: A4; }
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <h2>Angebot erstellen</h2>
+    <div class="wizard-container">
         
-        <div class="form-group">
-            <label>Kunde Name / Firma</label>
-            <textarea id="inp-recipient" rows="3" oninput="updatePreview()">Mannheimer ERC Eissportzentrum Herzogenried
-Käthe-Kollwitz-Str. 23
-68169 Mannheim</textarea>
-        </div>
+        <div id="step-1" class="step-content">
+            <div class="input-panel" style="margin: 0 auto; width: 400px;">
+                <h2>Schritt 1: Basisdaten</h2>
+                <p style="font-size:13px; color:#666;">Bitte gib zuerst die Kundendaten ein.</p>
 
-        <div class="form-group">
-            <label>Angebotsnummer</label>
-            <input type="text" id="inp-offer-id" value="A-00005" oninput="updatePreview()">
-        </div>
+                <div class="form-group">
+                    <label>Kunde (Name / Firma / Adresse)</label>
+                    <textarea id="inp-recipient" rows="4" placeholder="Firma GmbH&#10;Musterstraße 1&#10;12345 Stadt"></textarea>
+                </div>
 
-        <div class="form-group">
-            <label>Datum</label>
-            <input type="text" id="inp-date" value="18.09.2025" oninput="updatePreview()">
-        </div>
+                <div class="form-group">
+                    <label>Kundennummer</label>
+                    <input type="text" id="inp-client-id" value="K-00017">
+                </div>
 
-        <hr>
-        <h3>Position hinzufügen</h3>
-        
-        <div class="form-group">
-            <label>Produktvorlage wählen</label>
-            <select id="sel-product" onchange="loadProductTemplate()">
-                <option value="">-- Bitte wählen --</option>
-                <option value="foto">Unternehmens Shooting (40€)</option>
-                <option value="social">Social Media Strategie (30€)</option>
-                <option value="content">Content Produktion (35€)</option>
-            </select>
-        </div>
+                <div class="form-group">
+                    <label>Angebotsnummer (Automatisch)</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="inp-offer-id" readonly style="background:#f9f9f9; color:#555;">
+                        <button onclick="resetOfferNumber()" style="width:auto; font-size:10px; background:#ddd; color:black;">Reset</button>
+                    </div>
+                    <small style="color:#888;">Zählt automatisch hoch</small>
+                </div>
 
-        <div class="form-group">
-            <label>Titel</label>
-            <input type="text" id="inp-pos-title">
-        </div>
-        
-        <div class="form-group">
-            <label>Beschreibung (optional)</label>
-            <textarea id="inp-pos-desc" rows="2"></textarea>
-        </div>
+                <div class="form-group">
+                    <label>Datum</label>
+                    <input type="date" id="inp-date">
+                </div>
 
-        <div class="form-group" style="display:flex; gap:10px;">
-            <div style="flex:1;">
-                <label>Menge (Std)</label>
-                <input type="number" id="inp-pos-qty" value="1" step="0.5">
-            </div>
-            <div style="flex:1;">
-                <label>Preis (€)</label>
-                <input type="number" id="inp-pos-price" step="0.01">
+                <button class="btn btn-primary" onclick="goToStep2()">Weiter zu den Produkten &rarr;</button>
             </div>
         </div>
 
-        <button onclick="addPosition()">+ Hinzufügen</button>
-        <button class="secondary" onclick="window.print()">🖨️ Angebot als PDF drucken</button>
-        <br><br>
-        <small style="color:#777">Hinweis: Klicke in der Druckvorschau auf "Position löschen" (X), um Zeilen zu entfernen. Das X wird beim Drucken ausgeblendet.</small>
-    </div>
-
-    <div class="page-container">
-        <div id="page">
+        <div id="step-2" class="step-content hidden">
             
-            <header>
-                <div class="logo">
-                    <span style="font-size:36px; line-height:0.8;">|||</span> UNLEASH
+            <div class="input-panel">
+                <h2>Schritt 2: Produkte</h2>
+                
+                <div class="form-group">
+                    <label>Produktvorlage wählen</label>
+                    <select id="sel-product" onchange="loadProductTemplate()">
+                        <option value="">-- Bitte wählen --</option>
+                        <option value="foto">Unternehmens Shooting (40€)</option>
+                        <option value="social">Social Media Strategie (30€)</option>
+                        <option value="content">Content Produktion (35€)</option>
+                    </select>
                 </div>
-                <div class="doc-title">Angebot</div>
-            </header>
 
-            <div class="sender-small">
-                Unleash | Hafenstraße 25 | 68159 Mannheim
+                <div class="form-group">
+                    <label>Titel</label>
+                    <input type="text" id="inp-pos-title">
+                </div>
+                
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea id="inp-pos-desc" rows="2"></textarea>
+                </div>
+
+                <div class="form-group" style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label>Menge (Std)</label>
+                        <input type="number" id="inp-pos-qty" value="1" step="0.5">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Preis (€)</label>
+                        <input type="number" id="inp-pos-price" step="0.01">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="addPosition()">+ Hinzufügen</button>
+                
+                <hr style="margin: 20px 0; border:0; border-top:1px solid #eee;">
+                
+                <button class="btn btn-success" onclick="downloadPDF()">📄 PDF Herunterladen</button>
+                <button class="btn btn-secondary" onclick="goToStep1()">&larr; Zurück zu Daten</button>
             </div>
 
-            <div class="recipient-box" id="out-recipient">
-                </div>
+            <div class="preview-panel">
+                <div id="page">
+                    <header>
+                        <div class="logo"><span>|||</span> UNLEASH</div>
+                        <div class="doc-title">Angebot</div>
+                    </header>
 
-            <div class="meta-data">
-                <div class="meta-col">
-                    <strong>Betreff</strong>
-                    Angebot (Dienstleistung)
-                </div>
-                <div class="meta-col">
-                    <strong>Angebotsnummer</strong>
-                    <span id="out-offer-id">A-00005</span>
-                </div>
-                <div class="meta-col">
-                    <strong>Kundennummer</strong>
-                    K-00017
-                </div>
-                <div class="meta-col" style="text-align: right;">
-                    <strong>Datum</strong>
-                    <span id="out-date">18.09.2025</span>
+                    <div class="sender-small">Unleash | Hafenstraße 25 | 68159 Mannheim</div>
+
+                    <div class="recipient-box" id="out-recipient"></div>
+
+                    <div class="meta-data">
+                        <div class="meta-col"><strong>Betreff</strong>Angebot (Dienstleistung)</div>
+                        <div class="meta-col"><strong>Angebotsnummer</strong><span id="out-offer-id"></span></div>
+                        <div class="meta-col"><strong>Kundennummer</strong><span id="out-client-id"></span></div>
+                        <div class="meta-col" style="text-align: right;"><strong>Datum</strong><span id="out-date"></span></div>
+                    </div>
+
+                    <div class="salutation">Sehr geehrte Damen und Herren,<br>anbei übersende ich Ihnen das besprochene Angebot.</div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:5%">Pos.</th>
+                                <th style="width:40%">Beschreibung</th>
+                                <th style="width:10%; text-align:right">Menge</th>
+                                <th style="width:10%">Einheit</th>
+                                <th style="width:10%">USt.</th>
+                                <th style="width:12%; text-align:right">Einzelpreis</th>
+                                <th style="width:13%; text-align:right">Gesamt</th>
+                                <th class="no-print" style="width:20px"></th> </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div class="total-row"><span>Netto</span><span id="out-netto">€ 0,00</span></div>
+                        <div class="total-row"><span>zzgl. 19% USt.</span><span id="out-tax">€ 0,00</span></div>
+                        <div class="total-row final"><span>Gesamt</span><span id="out-total">€ 0,00</span></div>
+                    </div>
+
+                    <footer>
+                        <div class="footer-col"><strong>Unleash</strong>Hafenstraße 25<br>68159 Mannheim<br>Steuernummer: 3836520842<br>Inhaber: Dung Nguyen</div>
+                        <div class="footer-col"><strong>Kontakt</strong>Telefon: 01727504734<br>E-Mail: dung@unleash-marketing.de<br>Website: unleash-marketing.de</div>
+                        <div class="footer-col"><strong>Bankverbindung</strong>Bank: N26 Bank<br>IBAN: DE42 1001 1001 2269 7169 96<br>BIC: NTSB DEB1 XXX</div>
+                        <div class="page-num">Seite 1 von 1</div>
+                    </footer>
                 </div>
             </div>
-
-            <div class="salutation">
-                Sehr geehrte Damen und Herren,<br>
-                anbei übersende ich Ihnen das besprochene Angebot.
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Pos.</th>
-                        <th>Beschreibung</th>
-                        <th>Menge</th>
-                        <th>Einheit</th>
-                        <th>USt.</th>
-                        <th>Einzelpreis</th>
-                        <th>Gesamt</th>
-                        <th class="no-print" style="width:20px"></th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-
-            <div class="totals">
-                <div class="total-row">
-                    <span>Netto</span>
-                    <span id="out-netto">€ 0,00</span>
-                </div>
-                <div class="total-row">
-                    <span>zzgl. 19% USt.</span>
-                    <span id="out-tax">€ 0,00</span>
-                </div>
-                <div class="total-row final">
-                    <span>Gesamt</span>
-                    <span id="out-total">€ 0,00</span>
-                </div>
-            </div>
-
-            <footer>
-                <div class="footer-col">
-                    <strong>Unleash</strong>
-                    Hafenstraße 25<br>
-                    68159 Mannheim<br>
-                    Steuernummer: 3836520842<br>
-                    Inhaber: Dung Nguyen
-                </div>
-                <div class="footer-col">
-                    <strong>Kontakt</strong>
-                    Telefon: 01727504734<br>
-                    E-Mail: dung@unleash-marketing.de<br>
-                    Website: unleash-marketing.de
-                </div>
-                <div class="footer-col">
-                    <strong>Bankverbindung</strong>
-                    Bank: N26 Bank<br>
-                    IBAN: DE42 1001 1001 2269 7169 96<br>
-                    BIC: NTSB DEB1 XXX
-                </div>
-                <div class="page-num">Seite 1 von 1</div>
-            </footer>
-
         </div>
     </div>
 
     <script>
-        // --- KONFIGURATION DER PRODUKTE ---
+        // --- KONFIGURATION ---
         const products = {
-            foto: {
-                title: "Unternehmens Shooting",
-                desc: "Pro Person werden 15 Minuten berechnet\ninkl. Auf- und Abbau von einer Stunde",
-                price: 40.00
-            },
-            social: {
-                title: "Social Media Strategie",
-                desc: "Entwicklung einer Strategie inkl. Redaktionsplan",
-                price: 30.00
-            },
-            content: {
-                title: "Content Produktion",
-                desc: "Erstellung von Foto- und Videocontent vor Ort",
-                price: 35.00
-            }
+            foto: { title: "Unternehmens Shooting", desc: "Pro Person werden 15 Minuten berechnet\ninkl. Auf- und Abbau von einer Stunde", price: 40.00 },
+            social: { title: "Social Media Strategie", desc: "Entwicklung einer Strategie inkl. Redaktionsplan", price: 30.00 },
+            content: { title: "Content Produktion", desc: "Erstellung von Foto- und Videocontent vor Ort", price: 35.00 }
         };
 
-        // --- FUNKTIONEN ---
+        let positions = [];
 
+        // --- SCHRITT LOGIK ---
+        
+        function goToStep2() {
+            // Daten übertragen
+            const recipient = document.getElementById('inp-recipient').value;
+            if(!recipient) { alert("Bitte Empfänger angeben"); return; }
+            
+            document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, "<br>");
+            document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
+            document.getElementById('out-client-id').textContent = document.getElementById('inp-client-id').value;
+            
+            // Datum formatieren (YYYY-MM-DD -> DD.MM.YYYY)
+            const dateVal = document.getElementById('inp-date').valueAsDate;
+            if(dateVal) {
+                document.getElementById('out-date').textContent = dateVal.toLocaleDateString('de-DE');
+            }
+
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+        }
+
+        function goToStep1() {
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+        }
+
+        // --- AUTO NUMBERING LOGIK ---
+        function initAutoNumber() {
+            // Datum auf heute setzen
+            document.getElementById('inp-date').valueAsDate = new Date();
+
+            // Nummer aus LocalStorage holen
+            let lastNum = localStorage.getItem('unleash_last_offer_id');
+            let nextNum = 5; // Startwert A-00005
+            
+            if (lastNum) {
+                nextNum = parseInt(lastNum) + 1;
+            }
+            
+            // Formatieren auf 5 Stellen (z.B. 00006)
+            let formattedNum = "A-" + nextNum.toString().padStart(5, '0');
+            document.getElementById('inp-offer-id').value = formattedNum;
+        }
+
+        function saveNextNumber() {
+            // Speichert die aktuelle Nummer als "verbraucht"
+            let currentStr = document.getElementById('inp-offer-id').value; // A-00005
+            let numPart = parseInt(currentStr.split('-')[1]);
+            localStorage.setItem('unleash_last_offer_id', numPart);
+        }
+
+        function resetOfferNumber() {
+            if(confirm("Möchtest du den Zähler wirklich auf A-00005 zurücksetzen?")) {
+                localStorage.setItem('unleash_last_offer_id', 4);
+                initAutoNumber();
+            }
+        }
+
+        // --- PRODUKT LOGIK ---
         function formatCurrency(num) {
             return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
@@ -414,8 +379,6 @@ Käthe-Kollwitz-Str. 23
             }
         }
 
-        let positions = [];
-
         function addPosition() {
             const title = document.getElementById('inp-pos-title').value;
             const desc = document.getElementById('inp-pos-desc').value;
@@ -424,15 +387,13 @@ Käthe-Kollwitz-Str. 23
 
             if (!title) { alert("Bitte Titel eingeben"); return; }
 
-            positions.push({
-                title,
-                desc,
-                qty,
-                price,
-                total: qty * price
-            });
-
+            positions.push({ title, desc, qty, price, total: qty * price });
             renderTable();
+            
+            // Felder leeren nach Hinzufügen
+            document.getElementById('inp-pos-title').value = "";
+            document.getElementById('inp-pos-desc').value = "";
+            document.getElementById('sel-product').value = "";
         }
 
         function removePosition(index) {
@@ -443,30 +404,24 @@ Käthe-Kollwitz-Str. 23
         function renderTable() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
-            
             let sumNetto = 0;
 
             positions.forEach((pos, index) => {
                 sumNetto += pos.total;
-                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}.</td>
-                    <td>
-                        <span class="item-title">${pos.title}</span>
-                        <span class="item-desc">${pos.desc}</span>
-                    </td>
-                    <td>${formatCurrency(pos.qty)}</td>
+                    <td><span class="item-title" style="font-weight:bold">${pos.title}</span><br><span style="font-size:9pt; color:#555; white-space:pre-line">${pos.desc}</span></td>
+                    <td style="text-align:right">${formatCurrency(pos.qty)}</td>
                     <td>Stunden</td>
                     <td>19%</td>
-                    <td>${formatCurrency(pos.price)}</td>
-                    <td>${formatCurrency(pos.total)}</td>
-                    <td class="no-print"><button onclick="removePosition(${index})" style="background:red; padding:2px 5px; margin:0; font-size:10px;">X</button></td>
+                    <td style="text-align:right">${formatCurrency(pos.price)}</td>
+                    <td style="text-align:right">${formatCurrency(pos.total)}</td>
+                    <td class="no-print"><button class="delete-btn" onclick="removePosition(${index})">X</button></td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // Summen Berechnung
             const tax = sumNetto * 0.19;
             const total = sumNetto + tax;
 
@@ -475,16 +430,23 @@ Käthe-Kollwitz-Str. 23
             document.getElementById('out-total').textContent = "€ " + formatCurrency(total);
         }
 
-        function updatePreview() {
-            const recipient = document.getElementById('inp-recipient').value;
-            document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, "<br>");
-
-            document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
-            document.getElementById('out-date').textContent = document.getElementById('inp-date').value;
+        function downloadPDF() {
+            // 1. Speichern, dass diese Nummer benutzt wurde
+            saveNextNumber();
+            
+            // 2. Druckdialog öffnen (User wählt "Als PDF speichern")
+            window.print();
+            
+            // 3. Nach dem Drucken: Nummer neu laden für das nächste Angebot (optional, falls Seite offen bleibt)
+            setTimeout(() => {
+                initAutoNumber();
+                // Kleiner Trick um die Ansicht im Hintergrund zu aktualisieren falls man direkt noch eins schreibt
+                document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
+            }, 1000);
         }
 
-        // Init
-        updatePreview();
+        // Start
+        initAutoNumber();
 
     </script>
 </body>
