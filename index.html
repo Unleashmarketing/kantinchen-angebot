@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angebots-Generator Unleash V2</title>
+    <title>Angebots-Generator Unleash V3</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
@@ -24,14 +24,15 @@
             flex-direction: column;
         }
 
-        /* --- WIZARD UI (Der geführte Prozess) --- */
+        /* --- WIZARD UI --- */
         .wizard-container {
             background: white;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: center;
-            z-index: 100;
+            /* Wichtig für Screen */
+            height: 100%;
         }
 
         .step-content {
@@ -39,15 +40,18 @@
             max-width: 1200px;
             display: flex;
             gap: 30px;
+            height: 100%;
         }
 
-        /* Linke Spalte: Eingabemasken */
         .input-panel {
             flex: 0 0 350px;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             border: 1px solid #ddd;
+            height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .hidden { display: none !important; }
@@ -78,12 +82,8 @@
         }
         .btn-primary { background-color: var(--primary-color); color: white; }
         .btn-primary:hover { background-color: #d35400; }
-        
         .btn-secondary { background-color: #95a5a6; color: white; margin-top: 10px; }
-        .btn-secondary:hover { background-color: #7f8c8d; }
-
         .btn-success { background-color: #27ae60; color: white; margin-top: 20px; font-size: 16px;}
-        .btn-success:hover { background-color: #219150; }
 
         /* Rechte Spalte: Vorschau */
         .preview-panel {
@@ -91,10 +91,9 @@
             background: #ccc;
             padding: 20px;
             overflow-y: auto;
-            height: calc(100vh - 100px);
+            border-radius: 8px;
             display: flex;
             justify-content: center;
-            border-radius: 8px;
         }
 
         /* --- PAPIER DESIGN (A4) --- */
@@ -108,7 +107,6 @@
             box-sizing: border-box; 
         }
 
-        /* PDF Typografie */
         header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10mm; border-bottom: 2px solid black; padding-bottom: 10px; }
         .logo { font-size: 24px; font-weight: bold; color: #333; }
         .logo span { color: var(--primary-color); }
@@ -123,14 +121,12 @@
         
         .salutation { margin-bottom: 5mm; font-size: 10pt; }
 
-        /* Tabelle */
         table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 10mm; }
         thead { background-color: #eee; }
         th { text-align: left; padding: 8px 5px; font-weight: bold; border-bottom: 1px solid #ccc; -webkit-print-color-adjust: exact; }
         td { padding: 10px 5px; vertical-align: top; border-bottom: 1px solid #eee; }
         td:nth-child(3), td:nth-child(6), td:nth-child(7) { text-align: right; }
 
-        /* Löschen Button Design */
         .delete-btn {
             background: #e74c3c; color: white; border: none; 
             border-radius: 50%; width: 20px; height: 20px; 
@@ -138,29 +134,47 @@
             text-align: center; padding: 0;
         }
 
-        /* Summen */
         .totals { margin-left: auto; width: 40%; font-size: 11pt; }
         .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
         .total-row.final { font-weight: bold; font-size: 13pt; border-top: 1px solid #ddd; margin-top: 5px; padding-top: 10px; }
 
-        /* Footer */
         footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; font-size: 7pt; color: #555; display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 10px; }
         .footer-col strong { color: #333; display: block; }
         .page-num { position: absolute; right: 0; bottom: -10mm; font-size: 8pt; }
 
-        /* --- DRUCK EINSTELLUNGEN (Wichtig für PDF Download) --- */
+        /* --- DRUCK LOGIK (KORRIGIERT) --- */
         @media print {
-            body { background: white; height: auto; display: block; }
-            .wizard-container, .input-panel, .btn { display: none !important; } /* Versteckt alles außer das Blatt */
-            .preview-panel { padding: 0; background: white; height: auto; display: block; }
-            #page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
+            /* 1. Alles verstecken */
+            body * {
+                visibility: hidden;
+            }
             
-            /* HIER WIRD DAS X VERSTECKT */
-            .no-print { display: none !important; }
-            
-            /* Stellt sicher, dass Hintergrundfarben (graue Tabelle) gedruckt werden */
+            /* 2. Nur das Blatt (#page) und dessen Inhalt sichtbar machen */
+            #page, #page * {
+                visibility: visible;
+            }
+
+            /* 3. Das Blatt absolut über alles legen */
+            #page {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 15mm 20mm; /* Druckränder */
+                box-shadow: none;
+                background: white;
+            }
+
+            /* 4. Das X (Löschen Button) explizit ausblenden mit display:none, da es sonst Platz wegnimmt */
+            .no-print {
+                display: none !important;
+            }
+
+            /* Browser Einstellungen erzwingen */
+            @page { size: auto; margin: 0mm; }
+            html, body { height: 100%; overflow: hidden; background: white; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            @page { margin: 20mm; size: A4; }
         }
     </style>
 </head>
@@ -171,41 +185,32 @@
         <div id="step-1" class="step-content">
             <div class="input-panel" style="margin: 0 auto; width: 400px;">
                 <h2>Schritt 1: Basisdaten</h2>
-                <p style="font-size:13px; color:#666;">Bitte gib zuerst die Kundendaten ein.</p>
-
                 <div class="form-group">
                     <label>Kunde (Name / Firma / Adresse)</label>
                     <textarea id="inp-recipient" rows="4" placeholder="Firma GmbH&#10;Musterstraße 1&#10;12345 Stadt"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Kundennummer</label>
                     <input type="text" id="inp-client-id" value="K-00017">
                 </div>
-
                 <div class="form-group">
                     <label>Angebotsnummer (Automatisch)</label>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="inp-offer-id" readonly style="background:#f9f9f9; color:#555;">
                         <button onclick="resetOfferNumber()" style="width:auto; font-size:10px; background:#ddd; color:black;">Reset</button>
                     </div>
-                    <small style="color:#888;">Zählt automatisch hoch</small>
                 </div>
-
                 <div class="form-group">
                     <label>Datum</label>
                     <input type="date" id="inp-date">
                 </div>
-
                 <button class="btn btn-primary" onclick="goToStep2()">Weiter zu den Produkten &rarr;</button>
             </div>
         </div>
 
         <div id="step-2" class="step-content hidden">
-            
             <div class="input-panel">
                 <h2>Schritt 2: Produkte</h2>
-                
                 <div class="form-group">
                     <label>Produktvorlage wählen</label>
                     <select id="sel-product" onchange="loadProductTemplate()">
@@ -215,32 +220,14 @@
                         <option value="content">Content Produktion (35€)</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label>Titel</label>
-                    <input type="text" id="inp-pos-title">
-                </div>
-                
-                <div class="form-group">
-                    <label>Beschreibung</label>
-                    <textarea id="inp-pos-desc" rows="2"></textarea>
-                </div>
-
+                <div class="form-group"><label>Titel</label><input type="text" id="inp-pos-title"></div>
+                <div class="form-group"><label>Beschreibung</label><textarea id="inp-pos-desc" rows="2"></textarea></div>
                 <div class="form-group" style="display:flex; gap:10px;">
-                    <div style="flex:1;">
-                        <label>Menge (Std)</label>
-                        <input type="number" id="inp-pos-qty" value="1" step="0.5">
-                    </div>
-                    <div style="flex:1;">
-                        <label>Preis (€)</label>
-                        <input type="number" id="inp-pos-price" step="0.01">
-                    </div>
+                    <div style="flex:1;"><label>Menge (Std)</label><input type="number" id="inp-pos-qty" value="1" step="0.5"></div>
+                    <div style="flex:1;"><label>Preis (€)</label><input type="number" id="inp-pos-price" step="0.01"></div>
                 </div>
-
                 <button class="btn btn-primary" onclick="addPosition()">+ Hinzufügen</button>
-                
                 <hr style="margin: 20px 0; border:0; border-top:1px solid #eee;">
-                
                 <button class="btn btn-success" onclick="downloadPDF()">📄 PDF Herunterladen</button>
                 <button class="btn btn-secondary" onclick="goToStep1()">&larr; Zurück zu Daten</button>
             </div>
@@ -251,20 +238,15 @@
                         <div class="logo"><span>|||</span> UNLEASH</div>
                         <div class="doc-title">Angebot</div>
                     </header>
-
                     <div class="sender-small">Unleash | Hafenstraße 25 | 68159 Mannheim</div>
-
                     <div class="recipient-box" id="out-recipient"></div>
-
                     <div class="meta-data">
                         <div class="meta-col"><strong>Betreff</strong>Angebot (Dienstleistung)</div>
                         <div class="meta-col"><strong>Angebotsnummer</strong><span id="out-offer-id"></span></div>
                         <div class="meta-col"><strong>Kundennummer</strong><span id="out-client-id"></span></div>
                         <div class="meta-col" style="text-align: right;"><strong>Datum</strong><span id="out-date"></span></div>
                     </div>
-
                     <div class="salutation">Sehr geehrte Damen und Herren,<br>anbei übersende ich Ihnen das besprochene Angebot.</div>
-
                     <table>
                         <thead>
                             <tr>
@@ -275,17 +257,16 @@
                                 <th style="width:10%">USt.</th>
                                 <th style="width:12%; text-align:right">Einzelpreis</th>
                                 <th style="width:13%; text-align:right">Gesamt</th>
-                                <th class="no-print" style="width:20px"></th> </tr>
+                                <th class="no-print" style="width:20px"></th>
+                            </tr>
                         </thead>
                         <tbody id="table-body"></tbody>
                     </table>
-
                     <div class="totals">
                         <div class="total-row"><span>Netto</span><span id="out-netto">€ 0,00</span></div>
                         <div class="total-row"><span>zzgl. 19% USt.</span><span id="out-tax">€ 0,00</span></div>
                         <div class="total-row final"><span>Gesamt</span><span id="out-total">€ 0,00</span></div>
                     </div>
-
                     <footer>
                         <div class="footer-col"><strong>Unleash</strong>Hafenstraße 25<br>68159 Mannheim<br>Steuernummer: 3836520842<br>Inhaber: Dung Nguyen</div>
                         <div class="footer-col"><strong>Kontakt</strong>Telefon: 01727504734<br>E-Mail: dung@unleash-marketing.de<br>Website: unleash-marketing.de</div>
@@ -298,32 +279,21 @@
     </div>
 
     <script>
-        // --- KONFIGURATION ---
         const products = {
             foto: { title: "Unternehmens Shooting", desc: "Pro Person werden 15 Minuten berechnet\ninkl. Auf- und Abbau von einer Stunde", price: 40.00 },
             social: { title: "Social Media Strategie", desc: "Entwicklung einer Strategie inkl. Redaktionsplan", price: 30.00 },
             content: { title: "Content Produktion", desc: "Erstellung von Foto- und Videocontent vor Ort", price: 35.00 }
         };
-
         let positions = [];
 
-        // --- SCHRITT LOGIK ---
-        
         function goToStep2() {
-            // Daten übertragen
             const recipient = document.getElementById('inp-recipient').value;
             if(!recipient) { alert("Bitte Empfänger angeben"); return; }
-            
             document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, "<br>");
             document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
             document.getElementById('out-client-id').textContent = document.getElementById('inp-client-id').value;
-            
-            // Datum formatieren (YYYY-MM-DD -> DD.MM.YYYY)
             const dateVal = document.getElementById('inp-date').valueAsDate;
-            if(dateVal) {
-                document.getElementById('out-date').textContent = dateVal.toLocaleDateString('de-DE');
-            }
-
+            if(dateVal) { document.getElementById('out-date').textContent = dateVal.toLocaleDateString('de-DE'); }
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-2').classList.remove('hidden');
         }
@@ -333,42 +303,28 @@
             document.getElementById('step-1').classList.remove('hidden');
         }
 
-        // --- AUTO NUMBERING LOGIK ---
         function initAutoNumber() {
-            // Datum auf heute setzen
             document.getElementById('inp-date').valueAsDate = new Date();
-
-            // Nummer aus LocalStorage holen
             let lastNum = localStorage.getItem('unleash_last_offer_id');
-            let nextNum = 5; // Startwert A-00005
-            
-            if (lastNum) {
-                nextNum = parseInt(lastNum) + 1;
-            }
-            
-            // Formatieren auf 5 Stellen (z.B. 00006)
-            let formattedNum = "A-" + nextNum.toString().padStart(5, '0');
-            document.getElementById('inp-offer-id').value = formattedNum;
+            let nextNum = 5; 
+            if (lastNum) { nextNum = parseInt(lastNum) + 1; }
+            document.getElementById('inp-offer-id').value = "A-" + nextNum.toString().padStart(5, '0');
         }
 
         function saveNextNumber() {
-            // Speichert die aktuelle Nummer als "verbraucht"
-            let currentStr = document.getElementById('inp-offer-id').value; // A-00005
+            let currentStr = document.getElementById('inp-offer-id').value;
             let numPart = parseInt(currentStr.split('-')[1]);
             localStorage.setItem('unleash_last_offer_id', numPart);
         }
 
         function resetOfferNumber() {
-            if(confirm("Möchtest du den Zähler wirklich auf A-00005 zurücksetzen?")) {
+            if(confirm("Zähler auf A-00005 zurücksetzen?")) {
                 localStorage.setItem('unleash_last_offer_id', 4);
                 initAutoNumber();
             }
         }
 
-        // --- PRODUKT LOGIK ---
-        function formatCurrency(num) {
-            return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
+        function formatCurrency(num) { return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
         function loadProductTemplate() {
             const key = document.getElementById('sel-product').value;
@@ -384,13 +340,9 @@
             const desc = document.getElementById('inp-pos-desc').value;
             const qty = parseFloat(document.getElementById('inp-pos-qty').value) || 0;
             const price = parseFloat(document.getElementById('inp-pos-price').value) || 0;
-
             if (!title) { alert("Bitte Titel eingeben"); return; }
-
             positions.push({ title, desc, qty, price, total: qty * price });
             renderTable();
-            
-            // Felder leeren nach Hinzufügen
             document.getElementById('inp-pos-title').value = "";
             document.getElementById('inp-pos-desc').value = "";
             document.getElementById('sel-product').value = "";
@@ -405,13 +357,12 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = "";
             let sumNetto = 0;
-
             positions.forEach((pos, index) => {
                 sumNetto += pos.total;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}.</td>
-                    <td><span class="item-title" style="font-weight:bold">${pos.title}</span><br><span style="font-size:9pt; color:#555; white-space:pre-line">${pos.desc}</span></td>
+                    <td><span style="font-weight:bold">${pos.title}</span><br><span style="font-size:9pt; color:#555; white-space:pre-line">${pos.desc}</span></td>
                     <td style="text-align:right">${formatCurrency(pos.qty)}</td>
                     <td>Stunden</td>
                     <td>19%</td>
@@ -421,33 +372,20 @@
                 `;
                 tbody.appendChild(tr);
             });
-
             const tax = sumNetto * 0.19;
             const total = sumNetto + tax;
-
             document.getElementById('out-netto').textContent = "€ " + formatCurrency(sumNetto);
             document.getElementById('out-tax').textContent = "€ " + formatCurrency(tax);
             document.getElementById('out-total').textContent = "€ " + formatCurrency(total);
         }
 
         function downloadPDF() {
-            // 1. Speichern, dass diese Nummer benutzt wurde
             saveNextNumber();
-            
-            // 2. Druckdialog öffnen (User wählt "Als PDF speichern")
             window.print();
-            
-            // 3. Nach dem Drucken: Nummer neu laden für das nächste Angebot (optional, falls Seite offen bleibt)
-            setTimeout(() => {
-                initAutoNumber();
-                // Kleiner Trick um die Ansicht im Hintergrund zu aktualisieren falls man direkt noch eins schreibt
-                document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
-            }, 1000);
+            setTimeout(() => { initAutoNumber(); document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value; }, 1000);
         }
 
-        // Start
         initAutoNumber();
-
     </script>
 </body>
 </html>
