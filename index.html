@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angebots-Generator Unleash</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #e67e22; /* Das Orange aus dem Logo */
+            --text-color: #333;
+            --gray-light: #f4f4f4;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            color: var(--text-color);
+        }
+
+        /* --- EINGABE MASKE (Links) --- */
+        .controls {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+            overflow-y: auto;
+            max-height: 95vh;
+        }
+
+        .controls h2 { margin-top: 0; color: var(--primary-color); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #d35400; }
+        button.secondary { background-color: #555; margin-top: 5px; }
+
+        /* --- PAPIER VORSCHAU (Rechts) --- */
+        .page-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        #page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm; /* Standard Rand */
+            padding-top: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- PDF DESIGN STYLES --- */
+        
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10mm;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .logo span { color: var(--primary-color); }
+        /* Hier ein Platzhalter für das Logo-Bild */
+        .logo img { height: 40px; } 
+
+        .doc-title {
+            font-size: 24px;
+            color: var(--primary-color);
+            text-align: right;
+            font-weight: 400;
+        }
+
+        /* Sender Zeile klein */
+        .sender-small {
+            font-size: 8pt;
+            color: var(--primary-color);
+            margin-bottom: 2mm;
+            text-decoration: underline; /* Optional, wie im Fensterkuvert */
+        }
+
+        /* Adressfeld */
+        .recipient-box {
+            font-size: 11pt;
+            margin-bottom: 15mm;
+            line-height: 1.4;
+        }
+
+        /* Meta Daten Zeile (Betreff, Datum etc) */
+        .meta-data {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10mm;
+            font-size: 10pt;
+        }
+        .meta-col { width: 25%; }
+        .meta-col strong { display: block; font-weight: bold; color: #555; font-size: 9pt; }
+
+        .subject { font-weight: bold; font-size: 12pt; margin-bottom: 5mm; }
+        .salutation { margin-bottom: 5mm; font-size: 10pt; }
+
+        /* Tabelle */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+            margin-bottom: 10mm;
+        }
+
+        thead { background-color: #eee; }
+        th { text-align: left; padding: 8px 5px; font-weight: bold; border-bottom: 1px solid #ccc; }
+        td { padding: 10px 5px; vertical-align: top; border-bottom: 1px solid #eee; }
+
+        /* Spaltenbreiten justieren */
+        th:nth-child(1) { width: 5%; } /* Pos */
+        th:nth-child(2) { width: 45%; } /* Beschreibung */
+        th:nth-child(3) { width: 10%; text-align: right;} /* Menge */
+        th:nth-child(4) { width: 10%; } /* Einheit */
+        th:nth-child(5) { width: 10%; } /* USt */
+        th:nth-child(6) { width: 10%; text-align: right;} /* Einzel */
+        th:nth-child(7) { width: 10%; text-align: right;} /* Gesamt */
+        
+        td:nth-child(3), td:nth-child(6), td:nth-child(7) { text-align: right; }
+
+        .item-title { font-weight: bold; display: block; margin-bottom: 2px; }
+        .item-desc { font-size: 9pt; color: #555; white-space: pre-line; }
+
+        /* Summenblock */
+        .totals {
+            margin-left: auto;
+            width: 40%;
+            font-size: 11pt;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .total-row.final {
+            font-weight: bold;
+            font-size: 13pt;
+            border-top: 1px solid #ddd;
+            margin-top: 5px;
+            padding-top: 10px;
+        }
+
+        /* Footer */
+        footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 20mm;
+            right: 20mm;
+            font-size: 7pt;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .footer-col { width: 30%; }
+        .footer-col strong { color: #333; display: block; margin-bottom: 2px; }
+        .page-num { position: absolute; right: 0; bottom: -10mm; font-size: 8pt; }
+
+        /* DRUCK STYLES */
+        @media print {
+            body { background-color: white; margin: 0; padding: 0; }
+            .controls { display: none; }
+            .page-container { display: block; }
+            #page { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                height: 100%; 
+                padding: 15mm 20mm; /* Druckränder */
+            }
+            /* Erzwingt Hintergrundfarben (für den grauen Tabellenkopf) */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>Angebot erstellen</h2>
+        
+        <div class="form-group">
+            <label>Kunde Name / Firma</label>
+            <textarea id="inp-recipient" rows="3" oninput="updatePreview()">Mannheimer ERC Eissportzentrum Herzogenried
+Käthe-Kollwitz-Str. 23
+68169 Mannheim</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Angebotsnummer</label>
+            <input type="text" id="inp-offer-id" value="A-00005" oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label>Datum</label>
+            <input type="text" id="inp-date" value="18.09.2025" oninput="updatePreview()">
+        </div>
+
+        <hr>
+        <h3>Position hinzufügen</h3>
+        
+        <div class="form-group">
+            <label>Produktvorlage wählen</label>
+            <select id="sel-product" onchange="loadProductTemplate()">
+                <option value="">-- Bitte wählen --</option>
+                <option value="foto">Unternehmens Shooting (40€)</option>
+                <option value="social">Social Media Strategie (30€)</option>
+                <option value="content">Content Produktion (35€)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Titel</label>
+            <input type="text" id="inp-pos-title">
+        </div>
+        
+        <div class="form-group">
+            <label>Beschreibung (optional)</label>
+            <textarea id="inp-pos-desc" rows="2"></textarea>
+        </div>
+
+        <div class="form-group" style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Menge (Std)</label>
+                <input type="number" id="inp-pos-qty" value="1" step="0.5">
+            </div>
+            <div style="flex:1;">
+                <label>Preis (€)</label>
+                <input type="number" id="inp-pos-price" step="0.01">
+            </div>
+        </div>
+
+        <button onclick="addPosition()">+ Hinzufügen</button>
+        <button class="secondary" onclick="window.print()">🖨️ Angebot als PDF drucken</button>
+        <br><br>
+        <small style="color:#777">Hinweis: Klicke in der Druckvorschau auf "Position löschen" (X), um Zeilen zu entfernen. Das X wird beim Drucken ausgeblendet.</small>
+    </div>
+
+    <div class="page-container">
+        <div id="page">
+            
+            <header>
+                <div class="logo">
+                    <span style="font-size:36px; line-height:0.8;">|||</span> UNLEASH
+                </div>
+                <div class="doc-title">Angebot</div>
+            </header>
+
+            <div class="sender-small">
+                Unleash | Hafenstraße 25 | 68159 Mannheim
+            </div>
+
+            <div class="recipient-box" id="out-recipient">
+                </div>
+
+            <div class="meta-data">
+                <div class="meta-col">
+                    <strong>Betreff</strong>
+                    Angebot (Dienstleistung)
+                </div>
+                <div class="meta-col">
+                    <strong>Angebotsnummer</strong>
+                    <span id="out-offer-id">A-00005</span>
+                </div>
+                <div class="meta-col">
+                    <strong>Kundennummer</strong>
+                    K-00017
+                </div>
+                <div class="meta-col" style="text-align: right;">
+                    <strong>Datum</strong>
+                    <span id="out-date">18.09.2025</span>
+                </div>
+            </div>
+
+            <div class="salutation">
+                Sehr geehrte Damen und Herren,<br>
+                anbei übersende ich Ihnen das besprochene Angebot.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pos.</th>
+                        <th>Beschreibung</th>
+                        <th>Menge</th>
+                        <th>Einheit</th>
+                        <th>USt.</th>
+                        <th>Einzelpreis</th>
+                        <th>Gesamt</th>
+                        <th class="no-print" style="width:20px"></th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="total-row">
+                    <span>Netto</span>
+                    <span id="out-netto">€ 0,00</span>
+                </div>
+                <div class="total-row">
+                    <span>zzgl. 19% USt.</span>
+                    <span id="out-tax">€ 0,00</span>
+                </div>
+                <div class="total-row final">
+                    <span>Gesamt</span>
+                    <span id="out-total">€ 0,00</span>
+                </div>
+            </div>
+
+            <footer>
+                <div class="footer-col">
+                    <strong>Unleash</strong>
+                    Hafenstraße 25<br>
+                    68159 Mannheim<br>
+                    Steuernummer: 3836520842<br>
+                    Inhaber: Dung Nguyen
+                </div>
+                <div class="footer-col">
+                    <strong>Kontakt</strong>
+                    Telefon: 01727504734<br>
+                    E-Mail: dung@unleash-marketing.de<br>
+                    Website: unleash-marketing.de
+                </div>
+                <div class="footer-col">
+                    <strong>Bankverbindung</strong>
+                    Bank: N26 Bank<br>
+                    IBAN: DE42 1001 1001 2269 7169 96<br>
+                    BIC: NTSB DEB1 XXX
+                </div>
+                <div class="page-num">Seite 1 von 1</div>
+            </footer>
+
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURATION DER PRODUKTE ---
+        const products = {
+            foto: {
+                title: "Unternehmens Shooting",
+                desc: "Pro Person werden 15 Minuten berechnet\ninkl. Auf- und Abbau von einer Stunde",
+                price: 40.00
+            },
+            social: {
+                title: "Social Media Strategie",
+                desc: "Entwicklung einer Strategie inkl. Redaktionsplan",
+                price: 30.00
+            },
+            content: {
+                title: "Content Produktion",
+                desc: "Erstellung von Foto- und Videocontent vor Ort",
+                price: 35.00
+            }
+        };
+
+        // --- FUNKTIONEN ---
+
+        function formatCurrency(num) {
+            return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function loadProductTemplate() {
+            const key = document.getElementById('sel-product').value;
+            if (products[key]) {
+                document.getElementById('inp-pos-title').value = products[key].title;
+                document.getElementById('inp-pos-desc').value = products[key].desc;
+                document.getElementById('inp-pos-price').value = products[key].price;
+            }
+        }
+
+        let positions = [];
+
+        function addPosition() {
+            const title = document.getElementById('inp-pos-title').value;
+            const desc = document.getElementById('inp-pos-desc').value;
+            const qty = parseFloat(document.getElementById('inp-pos-qty').value) || 0;
+            const price = parseFloat(document.getElementById('inp-pos-price').value) || 0;
+
+            if (!title) { alert("Bitte Titel eingeben"); return; }
+
+            positions.push({
+                title,
+                desc,
+                qty,
+                price,
+                total: qty * price
+            });
+
+            renderTable();
+        }
+
+        function removePosition(index) {
+            positions.splice(index, 1);
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = "";
+            
+            let sumNetto = 0;
+
+            positions.forEach((pos, index) => {
+                sumNetto += pos.total;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}.</td>
+                    <td>
+                        <span class="item-title">${pos.title}</span>
+                        <span class="item-desc">${pos.desc}</span>
+                    </td>
+                    <td>${formatCurrency(pos.qty)}</td>
+                    <td>Stunden</td>
+                    <td>19%</td>
+                    <td>${formatCurrency(pos.price)}</td>
+                    <td>${formatCurrency(pos.total)}</td>
+                    <td class="no-print"><button onclick="removePosition(${index})" style="background:red; padding:2px 5px; margin:0; font-size:10px;">X</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Summen Berechnung
+            const tax = sumNetto * 0.19;
+            const total = sumNetto + tax;
+
+            document.getElementById('out-netto').textContent = "€ " + formatCurrency(sumNetto);
+            document.getElementById('out-tax').textContent = "€ " + formatCurrency(tax);
+            document.getElementById('out-total').textContent = "€ " + formatCurrency(total);
+        }
+
+        function updatePreview() {
+            const recipient = document.getElementById('inp-recipient').value;
+            document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, "<br>");
+
+            document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
+            document.getElementById('out-date').textContent = document.getElementById('inp-date').value;
+        }
+
+        // Init
+        updatePreview();
+
+    </script>
+</body>
+</html>
