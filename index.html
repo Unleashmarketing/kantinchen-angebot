@@ -169,7 +169,7 @@
     <div class="grid-row">
         <div class="form-group">
             <label>Angebotsnummer</label>
-            <input type="text" id="inp-offer-id" readonly style="background:#f5f5f5; color: #777;">
+            <input type="text" id="inp-offer-id" style="background:#f5f5f5; color: #777;">
         </div>
         <div class="form-group">
             <label>Reserviert bis zum</label>
@@ -201,36 +201,41 @@
         validUntil.setDate(validUntil.getDate() + 11);
         document.getElementById('inp-valid-until').valueAsDate = validUntil;
 
+        // Lädt die letzte Nummer oder startet bei 50
         let lastNum = localStorage.getItem('laras_last_id') || 50;
         let nextNum = parseInt(lastNum) + 1;
         const currentYear = new Date().getFullYear();
+        
+        // Schreibt die Nummer ins Feld (jetzt editierbar)
         document.getElementById('inp-offer-id').value = "A-" + nextNum.toString().padStart(3, '0') + "-" + currentYear;
     }
 
     function submitTo(targetPage) {
-        const recipient = document.getElementById('inp-recipient').value;
-        const event = document.getElementById('inp-event').value;
-        const locationName = document.getElementById('inp-location').value;
-        const time = document.getElementById('inp-time').value;
-        const date = document.getElementById('inp-date').value;
-        const offerId = document.getElementById('inp-offer-id').value;
-        const validUntil = document.getElementById('inp-valid-until').value;
+        const offerIdField = document.getElementById('inp-offer-id').value;
+        
+        // Logik zum Speichern der Nummer:
+        // Wir extrahieren die Zahl aus dem String (z.B. aus "A-065-2026" wird 65)
+        const match = offerIdField.match(/-(\d+)-/);
+        if (match && match[1]) {
+            localStorage.setItem('laras_last_id', parseInt(match[1]));
+        }
 
-        if(!recipient || !event) {
+        const fields = {
+            recipient: btoa(unescape(encodeURIComponent(document.getElementById('inp-recipient').value))),
+            event: document.getElementById('inp-event').value,
+            location: document.getElementById('inp-location').value,
+            time: document.getElementById('inp-time').value,
+            date: document.getElementById('inp-date').value,
+            offerId: offerIdField,
+            validUntil: document.getElementById('inp-valid-until').value
+        };
+
+        if(!document.getElementById('inp-recipient').value || !fields.event) {
             alert("Bitte Empfänger und Event-Namen angeben.");
             return;
         }
 
-        const params = new URLSearchParams({
-            recipient: btoa(unescape(encodeURIComponent(recipient))),
-            event: event,
-            location: locationName,
-            time: time,
-            date: date,
-            offerId: offerId,
-            validUntil: validUntil
-        });
-
+        const params = new URLSearchParams(fields);
         window.location.href = targetPage + "?" + params.toString();
     }
 
