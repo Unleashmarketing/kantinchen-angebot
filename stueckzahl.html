@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Laras Kantinchen | Stückzahl-Angebot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #5d4037;
+            --accent-orange: #e67e22;
+            --accent-pink: #d81b60;
+            --accent-green: #2e7d32;
+            --bg-color: #eef2f5;
+        }
+
+        body { font-family: 'Open Sans', sans-serif; background: var(--bg-color); margin: 0; display: flex; height: 100vh; }
+
+        /* Links: Editor */
+        .editor-panel { width: 450px; background: white; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
+        h2 { color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; }
+        
+        .section-box { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+
+        .btn { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; color: white; }
+        .btn-truck { background: var(--primary-color); }
+        .btn-food { background: var(--accent-orange); }
+        .btn-print { background: #27ae60; margin-top: 20px; font-size: 16px; }
+
+        /* Rechts: Vorschau */
+        .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; background: #999; }
+        #a4-page { width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-shadow: 0 0 20px rgba(0,0,0,0.3); box-sizing: border-box; position: relative; }
+
+        /* A4 Layout Styles */
+        .header-logo { position: absolute; top: 15mm; right: 15mm; width: 45mm; }
+        .sender-line { font-size: 8pt; color: #777; text-decoration: underline; margin-bottom: 10mm; }
+        .address-box { font-size: 11pt; margin-bottom: 20mm; line-height: 1.4; }
+        .event-info { font-size: 10pt; margin-bottom: 10mm; }
+        .event-info td { padding: 2px 0; }
+        .event-info td:first-child { font-weight: bold; width: 35mm; }
+        
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 15mm 0; }
+
+        /* Tabellen Design wie im Screenshot */
+        .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 15mm; font-size: 9pt; }
+        .truck-table th { border: 1px solid #000; padding: 8px; background: #fff; }
+        .truck-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
+        .truck-title { color: red; font-weight: bold; font-size: 14pt; text-align: center; }
+        
+        .text-pink { color: var(--accent-pink); font-weight: bold; }
+        .text-green { color: var(--accent-green); font-weight: bold; }
+        
+        .totals-row td { font-weight: bold; background: #f2f2f2; }
+
+        @media print {
+            .editor-panel { display: none; }
+            .preview-panel { background: white; padding: 0; }
+            #a4-page { box-shadow: none; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-panel">
+    <h2>1. Truck hinzufügen</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Truck Name</label>
+            <input type="text" id="truck-name" value="TRUCK 1">
+        </div>
+        <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
+    </div>
+
+    <h2>2. Speise hinzufügen</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Ziel-Truck</label>
+            <select id="food-target" style="width:100%; padding:8px;"></select>
+        </div>
+        <div class="form-group">
+            <label>Vorschläge</label>
+            <select id="food-presets" style="width:100%; padding:8px;" onchange="loadPreset()">
+                <option value="">-- Vorlage wählen --</option>
+                <option value="service">Servicegebühr & Truck</option>
+                <option value="pastrami">Pastrami Burger Mix</option>
+                <option value="bowl">Pastrami Bowl "Maxi"</option>
+                <option value="schnopfli">Schweizer Chnöpfli</option>
+                <option value="salat">Bunte Salatbowl (Vegan)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Titel (fett)</label>
+            <input type="text" id="food-title">
+        </div>
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea id="food-desc" rows="3"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group"><label>Menge</label><input type="number" id="food-qty" value="1"></div>
+            <div class="form-group"><label>Preis Brutto</label><input type="number" id="food-price" step="0.01"></div>
+        </div>
+        <button class="btn btn-food" onclick="addFood()">+ Speise zu Truck hinzufügen</button>
+    </div>
+
+    <button class="btn btn-print" onclick="window.print()">Drucken / PDF speichern</button>
+</div>
+
+<div class="preview-panel">
+    <div id="a4-page">
+        <img src="https://via.placeholder.com/150x80?text=Laras+Logo" class="header-logo"> <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
+        
+        <div class="address-box" id="out-recipient"></div>
+
+        <div style="text-align: right; font-size: 10pt; margin-bottom: 10mm;" id="out-today"></div>
+
+        <table class="event-info">
+            <tr><td>Catering:</td><td id="out-date"></td></tr>
+            <tr><td>Event:</td><td id="out-event"></td></tr>
+            <tr><td>Ort / Location:</td><td id="out-location"></td></tr>
+            <tr><td>Uhrzeit:</td><td id="out-time"></td></tr>
+            <tr><td>Angebot Nr.:</td><td id="out-offer-id"></td></tr>
+        </table>
+
+        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
+
+        <div id="tables-container">
+            </div>
+    </div>
+</div>
+
+<script>
+    const presets = {
+        service: { title: "Servicegebühr inkl. Anfahrt", desc: "Auf- und Abbau, 2-3x Personal, Deko, Bioverpackungen, Endreinigung", price: 500.00 },
+        pastrami: { title: "Pastrami „Harry“ & „Sally“ Mix", desc: "WE DONT NEED ANOTHER HERO / PROUD MARY\nKrautsalat, Senf, Schmelzkäse", price: 8.50 },
+        bowl: { title: "Pastrami Bowl „Maxi“", desc: "SIMPLY THE BEST\nPastrami auf Salat, Spiegelei, Kräuter", price: 8.50 },
+        schnopfli: { title: "Schweizer Chnöpfli", desc: "Original Käse-Mischung, Röstzwiebeln, Salatbouquet", price: 8.50 },
+        salat: { title: "Bunte Salatbowl - vegetarisch", desc: "Frische Wassermelone, Hirtenkäse, Kräutervinaigrette", price: 8.50 }
+    };
+
+    let trucks = [];
+
+    // Daten aus URL laden
+    function loadData() {
+        const p = new URLSearchParams(window.location.search);
+        document.getElementById('out-recipient').innerHTML = decodeURIComponent(escape(atob(p.get('recipient')))).replace(/\n/g, '<br>');
+        document.getElementById('out-event').textContent = p.get('event');
+        document.getElementById('out-location').textContent = p.get('location');
+        document.getElementById('out-time').textContent = p.get('time');
+        document.getElementById('out-offer-id').textContent = p.get('offerId');
+        document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
+        document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
+        document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+
+    function loadPreset() {
+        const val = document.getElementById('food-presets').value;
+        if(presets[val]) {
+            document.getElementById('food-title').value = presets[val].title;
+            document.getElementById('food-desc').value = presets[val].desc;
+            document.getElementById('food-price').value = presets[val].price;
+        }
+    }
+
+    function addTruck() {
+        const name = document.getElementById('truck-name').value;
+        const id = Date.now();
+        trucks.push({ id, name, items: [] });
+        updateTruckSelect();
+        render();
+    }
+
+    function updateTruckSelect() {
+        const sel = document.getElementById('food-target');
+        sel.innerHTML = trucks.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    }
+
+    function addFood() {
+        const truckId = document.getElementById('food-target').value;
+        if(!truckId) return alert("Zuerst einen Truck hinzufügen!");
+        
+        const truck = trucks.find(t => t.id == truckId);
+        const br_price = parseFloat(document.getElementById('food-price').value);
+        const qty = parseInt(document.getElementById('food-qty').value);
+        
+        truck.items.push({
+            title: document.getElementById('food-title').value,
+            desc: document.getElementById('food-desc').value,
+            qty: qty,
+            priceBrutto: br_price,
+            priceNetto: br_price / 1.07 // 7% MwSt Standard
+        });
+        render();
+    }
+
+    function render() {
+        const container = document.getElementById('tables-container');
+        container.innerHTML = "";
+
+        trucks.forEach(truck => {
+            let sumNetto = 0;
+            let sumBrutto = 0;
+
+            let html = `<table class="truck-table">
+                <thead>
+                    <tr>
+                        <th colspan="2" class="truck-title">Bezeichnung ${truck.name}</th>
+                        <th>Menge</th>
+                        <th>Einzel € netto</th>
+                        <th>Einzel € brutto</th>
+                        <th>Gesamt € netto</th>
+                        <th>Gesamt € brutto</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            truck.items.forEach(item => {
+                const totalNetto = item.qty * item.priceNetto;
+                const totalBrutto = item.qty * item.priceBrutto;
+                sumNetto += totalNetto;
+                sumBrutto += totalBrutto;
+
+                html += `<tr>
+                    <td colspan="2">
+                        <div style="font-weight:bold">${item.title}</div>
+                        <div style="white-space:pre-line; font-size:8pt; color:#444;">${item.desc}</div>
+                    </td>
+                    <td align="center">${item.qty}</td>
+                    <td align="right">${totalNetto.toFixed(2)}</td>
+                    <td align="right">${item.priceBrutto.toFixed(2)}</td>
+                    <td align="right">${totalNetto.toFixed(2)}</td>
+                    <td align="right">${totalBrutto.toFixed(2)}</td>
+                </tr>`;
+            });
+
+            html += `<tr class="totals-row">
+                <td colspan="5">Summe aller Positionen ${truck.name}</td>
+                <td align="right">${sumNetto.toFixed(2)}</td>
+                <td align="right">${sumBrutto.toFixed(2)}</td>
+            </tr></tbody></table>`;
+            
+            container.innerHTML += html;
+        });
+    }
+
+    loadData();
+</script>
+
+</body>
+</html>
