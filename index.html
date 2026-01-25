@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angebots-Generator Unleash V4 (Kacheln)</title>
+    <title>Angebots-Generator | Auswahl</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
@@ -18,412 +18,142 @@
             font-family: 'Open Sans', sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            height: 100vh;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        /* --- WIZARD UI --- */
         .wizard-container {
             background: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            height: 100%;
-        }
-
-        .step-content {
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
             width: 100%;
-            max-width: 1300px; /* Etwas breiter für mehr Platz */
-            display: flex;
-            gap: 30px;
-            height: 100%;
+            max-width: 800px;
         }
 
-        .input-panel {
-            flex: 0 0 400px; /* Breiter für die Kacheln */
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            height: fit-content;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .hidden { display: none !important; }
-
-        h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;}
+        h2 { color: var(--primary-color); border-bottom: 2px solid var(--primary-light); padding-bottom: 10px; margin-bottom: 20px; }
         
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-family: inherit;
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit;
         }
 
-        /* --- NEU: PRODUKT KACHELN (GRID) --- */
-        .product-grid {
+        /* Auswahl-Kacheln */
+        .type-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 Spalten */
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
         }
 
-        .product-card {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            background: #fafafa;
-        }
-
-        .product-card:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .product-card.active {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-            border-width: 2px;
-        }
-
-        .product-card h4 {
-            margin: 0 0 5px 0;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .product-card .price {
-            font-weight: bold;
-            color: var(--primary-color);
-            font-size: 14px;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            width: 100%;
-            transition: background 0.2s;
-        }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-primary:hover { background-color: #d35400; }
-        .btn-secondary { background-color: #95a5a6; color: white; margin-top: 10px; }
-        .btn-success { background-color: #27ae60; color: white; margin-top: 20px; font-size: 16px;}
-
-        /* Rechte Spalte: Vorschau */
-        .preview-panel {
-            flex-grow: 1;
-            background: #ccc;
+        .type-card {
+            border: 2px solid #eee;
+            border-radius: 10px;
             padding: 20px;
-            overflow-y: auto;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fff;
         }
 
-        /* --- PAPIER DESIGN (A4) --- */
-        #page {
-            background: white;
-            width: 210mm;
-            min-height: 297mm;
-            padding: 20mm 20mm 15mm 20mm;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            position: relative;
-            box-sizing: border-box; 
+        .type-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10mm; border-bottom: 2px solid black; padding-bottom: 10px; }
-        .logo { font-size: 24px; font-weight: bold; color: #333; }
-        .logo span { color: var(--primary-color); }
-        .doc-title { font-size: 24px; color: var(--primary-color); text-align: right; }
-        
-        .sender-small { font-size: 8pt; color: var(--primary-color); margin-bottom: 5mm; text-decoration: underline; }
-        .recipient-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 25mm; }
-        
-        .meta-data { display: flex; justify-content: space-between; margin-bottom: 10mm; font-size: 10pt; }
-        .meta-col { width: 25%; }
-        .meta-col strong { display: block; font-weight: bold; color: #555; font-size: 9pt; }
-        
-        .salutation { margin-bottom: 5mm; font-size: 10pt; }
+        .type-card i { font-size: 30px; display: block; margin-bottom: 10px; }
+        .type-card h4 { margin: 0; font-size: 16px; color: var(--text-color); }
+        .type-card p { font-size: 12px; color: #777; margin-top: 5px; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 10mm; }
-        thead { background-color: #eee; }
-        th { text-align: left; padding: 8px 5px; font-weight: bold; border-bottom: 1px solid #ccc; -webkit-print-color-adjust: exact; }
-        td { padding: 10px 5px; vertical-align: top; border-bottom: 1px solid #eee; }
-        td:nth-child(3), td:nth-child(6), td:nth-child(7) { text-align: right; }
-
-        .delete-btn {
-            background: #e74c3c; color: white; border: none; 
-            border-radius: 50%; width: 20px; height: 20px; 
-            cursor: pointer; font-size: 10px; line-height: 20px; 
-            text-align: center; padding: 0;
-        }
-
-        .totals { margin-left: auto; width: 40%; font-size: 11pt; }
-        .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
-        .total-row.final { font-weight: bold; font-size: 13pt; border-top: 1px solid #ddd; margin-top: 5px; padding-top: 10px; }
-
-        footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; font-size: 7pt; color: #555; display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 10px; }
-        .footer-col strong { color: #333; display: block; }
-        .page-num { position: absolute; right: 0; bottom: -10mm; font-size: 8pt; }
-
-        /* --- DRUCK LOGIK --- */
-        @media print {
-            body * { visibility: hidden; }
-            #page, #page * { visibility: visible; }
-            #page { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 15mm 20mm; box-shadow: none; background: white; }
-            .no-print { display: none !important; }
-            @page { size: auto; margin: 0mm; }
-            html, body { height: 100%; overflow: hidden; background: white; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
+        .disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div class="wizard-container">
-        
-        <div id="step-1" class="step-content">
-            <div class="input-panel" style="margin: 0 auto; width: 400px;">
-                <h2>Schritt 1: Basisdaten</h2>
-                <div class="form-group">
-                    <label>Kunde (Name / Firma / Adresse)</label>
-                    <textarea id="inp-recipient" rows="4" placeholder="Firma GmbH&#10;Musterstraße 1&#10;12345 Stadt"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Kundennummer</label>
-                    <input type="text" id="inp-client-id" value="K-00017">
-                </div>
-                <div class="form-group">
-                    <label>Angebotsnummer (Automatisch)</label>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" id="inp-offer-id" readonly style="background:#f9f9f9; color:#555;">
-                        <button onclick="resetOfferNumber()" style="width:auto; font-size:10px; background:#ddd; color:black;">Reset</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Datum</label>
-                    <input type="date" id="inp-date">
-                </div>
-                <button class="btn btn-primary" onclick="goToStep2()">Weiter zu den Produkten &rarr;</button>
-            </div>
+<div class="wizard-container">
+    <h2>Schritt 1: Basisdaten & Typ wählen</h2>
+    
+    <div class="form-group">
+        <label>Kunde (Name / Firma / Adresse)</label>
+        <textarea id="inp-recipient" rows="4" placeholder="Firma GmbH&#10;Musterstraße 1&#10;12345 Stadt"></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+            <label>Kundennummer</label>
+            <input type="text" id="inp-client-id" value="K-00017">
         </div>
-
-        <div id="step-2" class="step-content hidden">
-            <div class="input-panel">
-                <h2>Schritt 2: Produkte</h2>
-                
-                <div class="form-group">
-                    <label>Produkt auswählen:</label>
-                    <div class="product-grid">
-                        <div class="product-card" onclick="selectProduct('foto', this)">
-                            <h4>Fotoshooting</h4>
-                            <div class="price">40,00 €</div>
-                        </div>
-                        <div class="product-card" onclick="selectProduct('social', this)">
-                            <h4>Social Media</h4>
-                            <div class="price">30,00 €</div>
-                        </div>
-                        <div class="product-card" onclick="selectProduct('content', this)">
-                            <h4>Content Prod.</h4>
-                            <div class="price">35,00 €</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; border:1px solid #eee;">
-                    <div class="form-group"><label>Titel</label><input type="text" id="inp-pos-title"></div>
-                    <div class="form-group"><label>Beschreibung</label><textarea id="inp-pos-desc" rows="2"></textarea></div>
-                    <div class="form-group" style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label>Menge (Std)</label><input type="number" id="inp-pos-qty" value="1" step="0.5"></div>
-                        <div style="flex:1;"><label>Preis (€)</label><input type="number" id="inp-pos-price" step="0.01"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="addPosition()">+ Zur Liste hinzufügen</button>
-                </div>
-                
-                <hr style="margin: 20px 0; border:0; border-top:1px solid #eee;">
-                <button class="btn btn-success" onclick="downloadPDF()">📄 PDF Herunterladen</button>
-                <button class="btn btn-secondary" onclick="goToStep1()">&larr; Zurück zu Daten</button>
-            </div>
-
-            <div class="preview-panel">
-                <div id="page">
-                    <header>
-                        <div class="logo"><span>|||</span> UNLEASH</div>
-                        <div class="doc-title">Angebot</div>
-                    </header>
-                    <div class="sender-small">Unleash | Hafenstraße 25 | 68159 Mannheim</div>
-                    <div class="recipient-box" id="out-recipient"></div>
-                    <div class="meta-data">
-                        <div class="meta-col"><strong>Betreff</strong>Angebot (Dienstleistung)</div>
-                        <div class="meta-col"><strong>Angebotsnummer</strong><span id="out-offer-id"></span></div>
-                        <div class="meta-col"><strong>Kundennummer</strong><span id="out-client-id"></span></div>
-                        <div class="meta-col" style="text-align: right;"><strong>Datum</strong><span id="out-date"></span></div>
-                    </div>
-                    <div class="salutation">Sehr geehrte Damen und Herren,<br>anbei übersende ich Ihnen das besprochene Angebot.</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width:5%">Pos.</th>
-                                <th style="width:40%">Beschreibung</th>
-                                <th style="width:10%; text-align:right">Menge</th>
-                                <th style="width:10%">Einheit</th>
-                                <th style="width:10%">USt.</th>
-                                <th style="width:12%; text-align:right">Einzelpreis</th>
-                                <th style="width:13%; text-align:right">Gesamt</th>
-                                <th class="no-print" style="width:20px"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
-                    <div class="totals">
-                        <div class="total-row"><span>Netto</span><span id="out-netto">€ 0,00</span></div>
-                        <div class="total-row"><span>zzgl. 19% USt.</span><span id="out-tax">€ 0,00</span></div>
-                        <div class="total-row final"><span>Gesamt</span><span id="out-total">€ 0,00</span></div>
-                    </div>
-                    <footer>
-                        <div class="footer-col"><strong>Unleash</strong>Hafenstraße 25<br>68159 Mannheim<br>Steuernummer: 3836520842<br>Inhaber: Dung Nguyen</div>
-                        <div class="footer-col"><strong>Kontakt</strong>Telefon: 01727504734<br>E-Mail: dung@unleash-marketing.de<br>Website: unleash-marketing.de</div>
-                        <div class="footer-col"><strong>Bankverbindung</strong>Bank: N26 Bank<br>IBAN: DE42 1001 1001 2269 7169 96<br>BIC: NTSB DEB1 XXX</div>
-                        <div class="page-num">Seite 1 von 1</div>
-                    </footer>
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Datum</label>
+            <input type="date" id="inp-date">
         </div>
     </div>
 
-    <script>
-        const products = {
-            foto: { title: "Unternehmens Shooting", desc: "Pro Person werden 15 Minuten berechnet\ninkl. Auf- und Abbau von einer Stunde", price: 40.00 },
-            social: { title: "Social Media Strategie", desc: "Entwicklung einer Strategie inkl. Redaktionsplan", price: 30.00 },
-            content: { title: "Content Produktion", desc: "Erstellung von Foto- und Videocontent vor Ort", price: 35.00 }
-        };
-        let positions = [];
+    <div class="form-group">
+        <label>Angebotsnummer</label>
+        <input type="text" id="inp-offer-id" readonly style="background:#f9f9f9;">
+    </div>
 
-        function goToStep2() {
-            const recipient = document.getElementById('inp-recipient').value;
-            if(!recipient) { alert("Bitte Empfänger angeben"); return; }
-            document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, "<br>");
-            document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value;
-            document.getElementById('out-client-id').textContent = document.getElementById('inp-client-id').value;
-            const dateVal = document.getElementById('inp-date').valueAsDate;
-            if(dateVal) { document.getElementById('out-date').textContent = dateVal.toLocaleDateString('de-DE'); }
-            document.getElementById('step-1').classList.add('hidden');
-            document.getElementById('step-2').classList.remove('hidden');
+    <h3 style="font-size: 14px; margin-top: 30px; color: #555;">Wähle den Angebotstyp für Schritt 2:</h3>
+    
+    <div class="type-grid">
+        <div class="type-card" onclick="submitTo('getraenke.html')">
+            <span>🥤</span>
+            <h4>Getränke</h4>
+            <p>Inkl. Pfand-Berechnung & Liter</p>
+        </div>
+
+        <div class="type-card" onclick="submitTo('mindestabnahme.html')">
+            <span>📦</span>
+            <h4>Mindestabnahme</h4>
+            <p>Prüfung von Mindestmengen</p>
+        </div>
+
+        <div class="type-card" onclick="submitTo('stueckzahl.html')">
+            <span>🔢</span>
+            <h4>Stückzahl</h4>
+            <p>Klassischer Einzelverkauf</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialisierung wie in deinem alten Code
+    function init() {
+        document.getElementById('inp-date').valueAsDate = new Date();
+        let lastNum = localStorage.getItem('unleash_last_offer_id') || 4;
+        let nextNum = parseInt(lastNum) + 1;
+        document.getElementById('inp-offer-id').value = "A-" + nextNum.toString().padStart(5, '0');
+    }
+
+    function submitTo(targetPage) {
+        const recipient = document.getElementById('inp-recipient').value;
+        const clientId = document.getElementById('inp-client-id').value;
+        const offerId = document.getElementById('inp-offer-id').value;
+        const date = document.getElementById('inp-date').value;
+
+        if(!recipient) {
+            alert("Bitte zuerst Empfängerdaten ausfüllen!");
+            return;
         }
 
-        function goToStep1() {
-            document.getElementById('step-2').classList.add('hidden');
-            document.getElementById('step-1').classList.remove('hidden');
-        }
+        // Daten an URL hängen (Base64 kodiert, damit Zeilenumbrüche im Textarea nicht stören)
+        const params = new URLSearchParams({
+            recipient: btoa(unescape(encodeURIComponent(recipient))), 
+            clientId: clientId,
+            offerId: offerId,
+            date: date
+        });
 
-        function initAutoNumber() {
-            document.getElementById('inp-date').valueAsDate = new Date();
-            let lastNum = localStorage.getItem('unleash_last_offer_id');
-            let nextNum = 5; 
-            if (lastNum) { nextNum = parseInt(lastNum) + 1; }
-            document.getElementById('inp-offer-id').value = "A-" + nextNum.toString().padStart(5, '0');
-        }
+        window.location.href = targetPage + "?" + params.toString();
+    }
 
-        function saveNextNumber() {
-            let currentStr = document.getElementById('inp-offer-id').value;
-            let numPart = parseInt(currentStr.split('-')[1]);
-            localStorage.setItem('unleash_last_offer_id', numPart);
-        }
+    init();
+</script>
 
-        function resetOfferNumber() {
-            if(confirm("Zähler auf A-00005 zurücksetzen?")) {
-                localStorage.setItem('unleash_last_offer_id', 4);
-                initAutoNumber();
-            }
-        }
-
-        function formatCurrency(num) { return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-
-        // NEUE FUNKTION FÜR DIE KACHELN
-        function selectProduct(key, cardElement) {
-            // Visual Active State
-            const cards = document.querySelectorAll('.product-card');
-            cards.forEach(c => c.classList.remove('active'));
-            if(cardElement) cardElement.classList.add('active');
-
-            // Fill Data
-            if (products[key]) {
-                document.getElementById('inp-pos-title').value = products[key].title;
-                document.getElementById('inp-pos-desc').value = products[key].desc;
-                document.getElementById('inp-pos-price').value = products[key].price;
-            }
-        }
-
-        function addPosition() {
-            const title = document.getElementById('inp-pos-title').value;
-            const desc = document.getElementById('inp-pos-desc').value;
-            const qty = parseFloat(document.getElementById('inp-pos-qty').value) || 0;
-            const price = parseFloat(document.getElementById('inp-pos-price').value) || 0;
-            if (!title) { alert("Bitte Titel eingeben"); return; }
-            positions.push({ title, desc, qty, price, total: qty * price });
-            renderTable();
-            // Reset Fields & Active Card
-            document.getElementById('inp-pos-title').value = "";
-            document.getElementById('inp-pos-desc').value = "";
-            document.querySelectorAll('.product-card').forEach(c => c.classList.remove('active'));
-        }
-
-        function removePosition(index) {
-            positions.splice(index, 1);
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = "";
-            let sumNetto = 0;
-            positions.forEach((pos, index) => {
-                sumNetto += pos.total;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}.</td>
-                    <td><span style="font-weight:bold">${pos.title}</span><br><span style="font-size:9pt; color:#555; white-space:pre-line">${pos.desc}</span></td>
-                    <td style="text-align:right">${formatCurrency(pos.qty)}</td>
-                    <td>Stunden</td>
-                    <td>19%</td>
-                    <td style="text-align:right">${formatCurrency(pos.price)}</td>
-                    <td style="text-align:right">${formatCurrency(pos.total)}</td>
-                    <td class="no-print"><button class="delete-btn" onclick="removePosition(${index})">X</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-            const tax = sumNetto * 0.19;
-            const total = sumNetto + tax;
-            document.getElementById('out-netto').textContent = "€ " + formatCurrency(sumNetto);
-            document.getElementById('out-tax').textContent = "€ " + formatCurrency(tax);
-            document.getElementById('out-total').textContent = "€ " + formatCurrency(total);
-        }
-
-        function downloadPDF() {
-            saveNextNumber();
-            window.print();
-            setTimeout(() => { initAutoNumber(); document.getElementById('out-offer-id').textContent = document.getElementById('inp-offer-id').value; }, 1000);
-        }
-
-        initAutoNumber();
-    </script>
 </body>
 </html>
