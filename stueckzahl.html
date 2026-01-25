@@ -2,21 +2,20 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Laras Kantinchen | Konfigurator</title>
+    <title>Laras Kantinchen | Konfigurator V2</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
         :root {
             --primary-color: #5d4037;
             --accent-orange: #e67e22;
-            --bg-sidebar: #2c3e50;
         }
 
         body { font-family: 'Open Sans', sans-serif; background: #95a5a6; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* --- EDITOR SIDEBAR --- */
         .editor-panel { width: 420px; background: white; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.2); overflow-y: auto; z-index: 10; }
-        h2 { color: var(--primary-color); font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-top: 25px; text-transform: uppercase; }
+        h2 { color: var(--primary-color); font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-top: 20px; text-transform: uppercase; }
         
         .section-box { background: #fdfaf9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
         .form-group { margin-bottom: 12px; }
@@ -26,38 +25,42 @@
         }
 
         .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.9; }
         .btn-truck { background: var(--primary-color); }
         .btn-food { background: var(--accent-orange); margin-top: 10px; }
         .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
 
         /* --- A4 PREVIEW --- */
-        .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; }
-        #a4-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm 20mm; box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; }
+        .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+        .a4-page { 
+            width: 210mm; height: 297mm; background: white; padding: 20mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
+            display: flex; flex-direction: column;
+        }
 
-        /* Briefkopf & Layout */
+        /* Gemeinsame A4 Elemente */
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
         .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
         .event-info td:first-child { font-weight: bold; width: 35mm; }
-        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 10mm 0; }
+        
+        /* Seite 1 Spezifisch */
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 15mm 0; }
+        .intro-text { font-size: 11pt; line-height: 1.6; white-space: pre-wrap; }
 
-        /* Tabelle */
+        /* Seite 2+ Spezifisch (Tabellen) */
+        .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 9.5pt; table-layout: fixed; }
         .truck-table th, .truck-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
         .truck-title { color: #e74c3c; font-weight: bold; font-size: 13pt; text-align: center; background: #fff !important; }
         .totals-row { font-weight: bold; background: #f9f9f9; }
-
-        /* Lösch-Buttons in der Vorschau (no-print) */
         .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
-        .delete-truck { float: right; color: red; cursor: pointer; border: 1px solid red; padding: 2px 5px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
 
         @media print {
-            .editor-panel, .delete-overlay, .delete-truck, .no-print { display: none !important; }
-            .preview-panel { padding: 0; background: white; }
-            #a4-page { box-shadow: none; margin: 0; width: 100%; }
+            .editor-panel, .delete-overlay, .no-print { display: none !important; }
+            .preview-panel { padding: 0; background: white; overflow: visible; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
             body { background: white; }
         }
     </style>
@@ -65,75 +68,67 @@
 <body>
 
 <div class="editor-panel">
-    <h2>1. Truck verwalten</h2>
+    <h2>1. Einleitungstext</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Anschreiben</label>
+            <textarea id="edit-intro" rows="8" oninput="updateIntro()">Sehr geehrte Damen und Herren,
+
+vielen Dank für Ihre Anfrage. 
+Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
+
+Wir freuen uns auf Ihre Rückmeldung!</textarea>
+        </div>
+    </div>
+
+    <h2>2. Trucks & Speisen</h2>
     <div class="section-box">
         <div class="form-group">
             <label>Truck Name</label>
             <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
         </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
-    </div>
-
-    <h2>2. Speisen hinzufügen</h2>
-    <div class="section-box">
+        
+        <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
+        
         <div class="form-group">
-            <label>Ziel-Truck wählen</label>
+            <label>Ziel-Truck</label>
             <select id="food-target"></select>
         </div>
         <div class="form-group">
             <label>Produkt-Vorlagen</label>
             <select id="food-presets" onchange="loadPreset()">
                 <option value="">-- Bitte wählen --</option>
-                <optgroup label="Pastrami Sandwiches">
-                    <option value="p_sally_s">Pastrami Sandwich Sally</option>
-                    <option value="p_harry_s">Pastrami Sandwich Harry</option>
-                    <option value="p_maxi_s">Pastrami Sandwich Maxi</option>
-                </optgroup>
-                <optgroup label="Pastrami Bowls">
-                    <option value="p_sally_b">Pastrami Bowl Sally</option>
-                    <option value="p_harry_b">Pastrami Bowl Harry</option>
-                    <option value="p_maxi_b">Pastrami Bowl Maxi</option>
-                </optgroup>
-                <optgroup label="Vegetarisch / Vegan">
-                    <option value="spaetzle">Käsespätzle (Vegi)</option>
-                    <option value="salat">Bunter Pflücksalat (Vegi)</option>
-                    <option value="curry">Linsen-Curry (Vegan)</option>
-                    <option value="maultaschen">Geschmelzte Maultaschen</option>
-                </optgroup>
-                <optgroup label="Klassiker & Beilagen">
-                    <option value="pommes">Portion Pommes Frites</option>
-                    <option value="wurst">Bratwurst / Saumagen / Feuerwurst</option>
-                    <option value="service">Servicegebühr / Truck-Pauschale</option>
-                </optgroup>
-            </select>
+                <option value="p_sally_s">Pastrami Sandwich Sally</option>
+                <option value="p_harry_s">Pastrami Sandwich Harry</option>
+                <option value="service">Servicegebühr / Truck</option>
+                </select>
         </div>
         <div class="form-group">
-            <label>Titel (Editierbar)</label>
-            <input type="text" id="food-title">
+            <label>Titel / Preis / Menge</label>
+            <input type="text" id="food-title" style="margin-bottom:5px">
+            <div style="display:flex; gap:5px">
+                <input type="number" id="food-qty" value="1">
+                <input type="number" id="food-price" step="0.01" placeholder="Preis Brutto">
+            </div>
         </div>
         <div class="form-group">
-            <label>Beschreibung (Editierbar)</label>
-            <textarea id="food-desc" rows="4"></textarea>
+            <label>Beschreibung</label>
+            <textarea id="food-desc" rows="3"></textarea>
         </div>
-        <div style="display:flex; gap:10px;">
-            <div class="form-group" style="flex:1;"><label>Menge</label><input type="number" id="food-qty" value="1"></div>
-            <div class="form-group" style="flex:1;"><label>Einzel Brutto €</label><input type="number" id="food-price" step="0.01"></div>
-        </div>
-        <button class="btn btn-food" onclick="addFood()">Speise zum Truck hinzufügen</button>
+        <button class="btn btn-food" onclick="addFood()">Speise hinzufügen</button>
     </div>
 
-    <button class="btn btn-print" onclick="window.print()">PDF ERSTELLEN</button>
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
-    <div id="a4-page">
-        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
-        
+    <div class="a4-page" id="page-1">
+        <img src="DEIN_LOGO_URL_HIER" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
-        
         <div class="address-box" id="out-recipient"></div>
         <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
-
+        
         <table class="event-info">
             <tr><td>Catering:</td><td id="out-date"></td></tr>
             <tr><td>Event:</td><td id="out-event"></td></tr>
@@ -143,26 +138,28 @@
         </table>
 
         <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
+        
+        <div class="intro-text" id="out-intro"></div>
+    </div>
 
+    <div class="a4-page" id="page-2">
+        <img src="DEIN_LOGO_URL_HIER" class="header-logo">
+        <div class="offer-header-small">
+            Hier unser Angebot für den vorgenannten Event:<br>
+            <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
+        </div>
+        
         <div id="tables-container"></div>
     </div>
 </div>
 
 <script>
+    // Alle Produkte aus der vorigen Nachricht hier einfügen
     const presets = {
         p_sally_s: { title: "Pastrami Sandwich Sally", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
         p_harry_s: { title: "Pastrami Sandwich Harry", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
-        p_maxi_s: { title: "Pastrami Sandwich Maxi", price: 9.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
-        p_sally_b: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
-        p_harry_b: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
-        p_maxi_b: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
-        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung – vegetarisch", price: 8.50, desc: "Dazu Röstzwiebeln und frische Kräuter an Salatbouquet" },
-        salat: { title: "Bunter Pflücksalat mit frischer Wassermelone", price: 7.50, desc: "An Hirtenkäsewürfel an hausgem. Kräutervinaigrette dazu Baguette" },
-        curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "Mit frischem Koriander, einem Klecks creme vega & Limette an Basmatireis" },
-        maultaschen: { title: "Geschmelzte Maultaschen", price: 8.50, desc: "Mit Röstzwiebeln und Balsamicoreduktion an Salatbouquet" },
-        pommes: { title: "Portion Pommes Frites (frisch)", price: 4.50, desc: "Incl. Heinz-Ketchup / Heinz-Pommes Soße" },
-        wurst: { title: "Bratwurst / Saumagenbratwurst / Feuerwurst", price: 5.00, desc: "Im Brötchen incl. Ketchup / Senf" },
         service: { title: "Servicegebühr inkl. Anfahrt & Truck", price: 500.00, desc: "Auf- und Abbau, 2-3x Personal, Blumen- und Kräuterdeko, Bioverpackungen, Endreinigung" }
+        // ... (Füge hier die anderen aus der vorigen Liste ein)
     };
 
     let trucks = [];
@@ -175,14 +172,17 @@
             document.getElementById('out-location').textContent = p.get('location');
             document.getElementById('out-time').textContent = p.get('time');
             document.getElementById('out-offer-id').textContent = p.get('offerId');
+            document.getElementById('out-offer-id-2').textContent = p.get('offerId');
             document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
             document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
             document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+            updateIntro();
         }
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
-
+    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+    
     function loadPreset() {
         const key = document.getElementById('food-presets').value;
         if(presets[key]) {
@@ -199,12 +199,6 @@
         render();
     }
 
-    function removeTruck(id) {
-        trucks = trucks.filter(t => t.id !== id);
-        updateTruckList();
-        render();
-    }
-
     function updateTruckList() {
         const sel = document.getElementById('food-target');
         sel.innerHTML = trucks.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
@@ -214,66 +208,22 @@
         const tId = document.getElementById('food-target').value;
         const truck = trucks.find(t => t.id == tId);
         if(!truck) return alert("Bitte erst einen Truck anlegen!");
-
         const br = parseFloat(document.getElementById('food-price').value);
-        truck.items.push({
-            id: Date.now(),
-            title: document.getElementById('food-title').value,
-            desc: document.getElementById('food-desc').value,
-            qty: parseInt(document.getElementById('food-qty').value),
-            br: br,
-            ne: br / 1.07 // 7% MwSt
-        });
-        render();
-    }
-
-    function removeFood(tId, fId) {
-        const truck = trucks.find(t => t.id == tId);
-        truck.items = truck.items.filter(f => f.id !== fId);
+        truck.items.push({ id: Date.now(), title: document.getElementById('food-title').value, desc: document.getElementById('food-desc').value, qty: parseInt(document.getElementById('food-qty').value), br: br, ne: br / 1.07 });
         render();
     }
 
     function render() {
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
-
         trucks.forEach(t => {
             let sN = 0, sB = 0;
             let rows = t.items.map(f => {
-                const tN = f.qty * f.ne;
-                const tB = f.qty * f.br;
+                const tN = f.qty * f.ne; const tB = f.qty * f.br;
                 sN += tN; sB += tB;
-                return `<tr>
-                    <td style="width:50%">
-                        <strong>${f.title}</strong><br>
-                        <small style="color:#555">${f.desc}</small>
-                        <span class="delete-overlay no-print" onclick="removeFood(${t.id}, ${f.id})">[Löschen]</span>
-                    </td>
-                    <td align="center" style="width:8%">${f.qty}</td>
-                    <td align="right" style="width:10%">${f.ne.toFixed(2)}</td>
-                    <td align="right" style="width:10%">${f.br.toFixed(2)}</td>
-                    <td align="right" style="width:11%">${tN.toFixed(2)}</td>
-                    <td align="right" style="width:11%">${tB.toFixed(2)}</td>
-                </tr>`;
+                return `<tr><td><strong>${f.title}</strong><br><small>${f.desc}</small></td><td align="center">${f.qty}</td><td align="right">${f.ne.toFixed(2)}</td><td align="right">${f.br.toFixed(2)}</td><td align="right">${tN.toFixed(2)}</td><td align="right">${tB.toFixed(2)}</td></tr>`;
             }).join('');
-
-            container.innerHTML += `
-                <table class="truck-table">
-                    <thead>
-                        <tr><th colspan="6" class="truck-title">BEZEICHNUNG ${t.name} <span class="delete-truck no-print" onclick="removeTruck(${t.id})">Truck entfernen</span></th></tr>
-                        <tr style="background:#eee">
-                            <th>Position</th><th>Menge</th><th>Einzel netto</th><th>Einzel brutto</th><th>Gesamt netto</th><th>Gesamt brutto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                        <tr class="totals-row">
-                            <td colspan="4">Summe aller Positionen ${t.name}</td>
-                            <td align="right">${sN.toFixed(2)} €</td>
-                            <td align="right">${sB.toFixed(2)} €</td>
-                        </tr>
-                    </tbody>
-                </table>`;
+            container.innerHTML += `<table class="truck-table"><thead><tr><th colspan="6" class="truck-title">BEZEICHNUNG ${t.name}</th></tr></thead><tbody>${rows}<tr class="totals-row"><td colspan="4">Summe aller Positionen ${t.name}</td><td align="right">${sN.toFixed(2)} €</td><td align="right">${sB.toFixed(2)} €</td></tr></tbody></table>`;
         });
     }
 
