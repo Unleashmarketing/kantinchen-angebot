@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Laras Kantinchen | Konfigurator V3</title>
+    <title>Laras Kantinchen | Konfigurator Stückzahl</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
@@ -34,7 +34,7 @@
         .a4-page { 
             width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: column; page-break-after: always;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -49,24 +49,22 @@
 
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         
-        /* --- TABELLEN ANPASSUNG --- */
+        /* --- TABELLEN OPTIK --- */
         .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 9pt; table-layout: fixed; }
-        .truck-table th, .truck-table td { border: 1px solid #000; padding: 6px; vertical-align: top; overflow: hidden; }
+        .truck-table th, .truck-table td { border: 1px solid #000; padding: 6px; vertical-align: top; word-wrap: break-word; }
         
         /* Spaltenbreiten */
-        .col-pos { width: 45%; } /* Doppelt so breit */
-        .col-qty { width: 8%; }
-        .col-price { width: 11.75%; }
+        .col-desc { width: 50%; } /* Doppelt so breit */
+        .col-small { width: 10%; }
 
-        .truck-title-row { color: #e74c3c; font-weight: bold; font-size: 13pt; text-align: center; }
+        .truck-title { color: #e74c3c; font-weight: bold; font-size: 14pt; text-align: center; background: #fff !important; text-transform: uppercase; }
         .totals-row { font-weight: bold; background: #f9f9f9; }
-        
-        .delete-btn { color: red; cursor: pointer; font-size: 10px; margin-left: 5px; text-decoration: underline; }
+        .delete-btn { color: red; cursor: pointer; font-size: 10px; margin-left: 5px; font-weight: normal; }
 
         @media print {
-            .editor-panel, .no-print { display: none !important; }
+            .editor-panel, .no-print, .delete-btn { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; page-break-after: always; }
+            .a4-page { box-shadow: none; margin: 0; height: 297mm; }
             body { background: white; }
         }
     </style>
@@ -74,7 +72,7 @@
 <body>
 
 <div class="editor-panel">
-    <h2>1. Einleitungstext</h2>
+    <h2>1. Anschreiben</h2>
     <div class="section-box">
         <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
@@ -83,69 +81,69 @@ vielen Dank für Ihre Anfrage. Anbei übersenden wir Ihnen die ausgearbeiteten V
 Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
 
-    <h2>2. Konfiguration</h2>
+    <h2>2. Trucks & Speisen</h2>
     <div class="section-box">
         <div class="form-group">
-            <label>Truck hinzufügen</label>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
-                <button class="btn btn-truck" style="width:auto;" onclick="addTruck()">+</button>
-            </div>
+            <label>Truck Name</label>
+            <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
         </div>
-        <hr>
+        <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
+        <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
         <div class="form-group">
             <label>Ziel-Truck</label>
             <select id="food-target"></select>
         </div>
         <div class="form-group">
-            <label>Produkt wählen</label>
+            <label>Produktauswahl</label>
             <select id="food-presets" onchange="loadPreset()">
-                <option value="">-- Bitte wählen --</option>
+                <option value="">-- Produkt wählen --</option>
                 <optgroup label="Pastrami Sandwiches">
-                    <option value="p_sally_s">Sally Sandwich</option>
-                    <option value="p_harry_s">Harry Sandwich</option>
-                    <option value="p_maxi_s">Maxi Sandwich</option>
+                    <option value="p_sally_s">Pastrami Sandwich Sally</option>
+                    <option value="p_harry_s">Pastrami Sandwich Harry</option>
+                    <option value="p_maxi_s">Pastrami Sandwich Maxi</option>
                 </optgroup>
                 <optgroup label="Pastrami Bowls">
-                    <option value="p_sally_b">Sally Bowl</option>
-                    <option value="p_harry_b">Harry Bowl</option>
-                    <option value="p_maxi_b">Maxi Bowl</option>
+                    <option value="p_sally_b">Pastrami Bowl Sally</option>
+                    <option value="p_harry_b">Pastrami Bowl Harry</option>
+                    <option value="p_maxi_b">Pastrami Bowl Maxi</option>
                 </optgroup>
-                <optgroup label="Vegi / Vegan / Specials">
-                    <option value="spaetzle">Käsespätzle</option>
-                    <option value="salat">Pflücksalat</option>
-                    <option value="curry">Linsen-Curry</option>
-                    <option value="maultaschen">Maultaschen</option>
-                    <option value="pommes">Pommes</option>
-                    <option value="wurst">Bratwurst/Saumagen</option>
-                    <option value="service">Service/Pauschale</option>
+                <optgroup label="Vegetarisch / Vegan / Specials">
+                    <option value="spaetzle">Käsespätzle Bergkäse</option>
+                    <option value="salat">Bunter Pflücksalat</option>
+                    <option value="curry">Vegan Linsen-Curry</option>
+                    <option value="maultaschen">Geschmelzte Maultaschen</option>
+                </optgroup>
+                <optgroup label="Beilagen & Klassiker">
+                    <option value="pommes">Portion Pommes Frites</option>
+                    <option value="wurst">Bratwurst / Feuerwurst</option>
+                    <option value="service">Servicegebühr / Truck</option>
                 </optgroup>
             </select>
         </div>
         <div class="form-group">
-            <label>Titel</label>
-            <input type="text" id="food-title">
+            <label>Titel / Brutto-Preis / Menge</label>
+            <input type="text" id="food-title" placeholder="Titel" style="margin-bottom:5px">
+            <div style="display:flex; gap:5px">
+                <input type="number" id="food-qty" value="1">
+                <input type="number" id="food-price" step="0.01" placeholder="Preis Brutto">
+            </div>
         </div>
         <div class="form-group">
             <label>Beschreibung</label>
             <textarea id="food-desc" rows="3"></textarea>
         </div>
-        <div style="display:flex; gap:5px;">
-            <input type="number" id="food-qty" value="1" placeholder="Menge">
-            <input type="number" id="food-price" step="0.01" placeholder="Brutto €">
-        </div>
-        <button class="btn btn-food" onclick="addFood()">Hinzufügen</button>
+        <button class="btn btn-food" onclick="addFood()">Speise hinzufügen</button>
     </div>
 
-    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN</button>
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
     <div class="a4-page">
-        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
+        <img src="https://via.placeholder.com/150x80?text=LOGO" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
         <div class="address-box" id="out-recipient"></div>
-        <div style="text-align: right; font-size: 10.5pt;" id="out-today"></div>
+        <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
         <table class="event-info">
             <tr><td>Catering:</td><td id="out-date"></td></tr>
             <tr><td>Event:</td><td id="out-event"></td></tr>
@@ -158,8 +156,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
 
     <div class="a4-page">
-        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
-        <div class="offer-header-small">Hier unser Angebot für den vorgenannten Event:<br><strong>Angebot Nr. <span id="out-offer-id-2"></span></strong></div>
+        <img src="https://via.placeholder.com/150x80?text=LOGO" class="header-logo">
+        <div class="offer-header-small">
+            Hier unser Angebot für den vorgenannten Event:<br>
+            <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
+        </div>
         <div id="tables-container"></div>
     </div>
 </div>
@@ -172,12 +173,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         p_sally_b: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
         p_harry_b: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
         p_maxi_b: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
-        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung – vegetarisch", price: 8.50, desc: "dazu Röstzwiebeln und frische Kräuter an Salatbouquet" },
-        salat: { title: "Bunter Pflücksalat mit frischer Wassermelone", price: 7.50, desc: "an Hirtenkäsewürfel an hausgem. Kräutervinaigrette dazu Baguette" },
-        curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "mit frischem Koriander, einem Klecks creme vega & Limette an Basmatireis" },
-        maultaschen: { title: "Geschmelzte Maultaschen", price: 8.50, desc: "mit Röstzwiebeln und Balsamicoreduktion an Salatbouquet" },
+        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung – vegetarisch", price: 8.50, desc: "Dazu Röstzwiebeln und frische Kräuter an Salatbouquet" },
+        salat: { title: "Bunter Pflücksalat mit frischer Wassermelone", price: 7.50, desc: "An Hirtenkäsewürfel an hausgem. Kräutervinaigrette dazu Baguette" },
+        curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "Mit frischem Koriander, einem Klecks creme vega & Limette an Basmatireis" },
+        maultaschen: { title: "Geschmelzte Maultaschen", price: 8.50, desc: "Mit Röstzwiebeln und Balsamicoreduktion an Salatbouquet" },
         pommes: { title: "Portion Pommes Frites (frisch)", price: 4.50, desc: "Incl. Heinz-Ketchup / Heinz-Pommes Soße" },
-        wurst: { title: "Bratwurst / Saumagenbratwurst / Feuerwurst", price: 5.00, desc: "im Brötchen incl. Ketchup / Senf" },
+        wurst: { title: "Bratwurst / Saumagenbratwurst / Feuerwurst", price: 5.00, desc: "Im Brötchen incl. Ketchup / Senf" },
         service: { title: "Servicegebühr inkl. Anfahrt & Truck", price: 500.00, desc: "Auf- und Abbau, 2-3x Personal, Blumen- und Kräuterdeko, Bioverpackungen, Endreinigung" }
     };
 
@@ -212,10 +213,9 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function addTruck() {
-        const name = document.getElementById('truck-name').value || "TRUCK " + (trucks.length + 1);
+        const name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
         trucks.push({ id: Date.now(), name: name.toUpperCase(), items: [] });
-        updateTruckList();
-        render();
+        updateTruckList(); render();
     }
 
     function removeTruck(id) { trucks = trucks.filter(t => t.id !== id); updateTruckList(); render(); }
@@ -235,8 +235,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function removeFood(tId, fId) {
-        const truck = trucks.find(t => t.id == tId);
-        truck.items = truck.items.filter(f => f.id !== fId);
+        const t = trucks.find(tr => tr.id == tId);
+        t.items = t.items.filter(f => f.id !== fId);
         render();
     }
 
@@ -248,31 +248,16 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             let rows = t.items.map(f => {
                 const tN = f.qty * f.ne; const tB = f.qty * f.br;
                 sN += tN; sB += tB;
-                return `<tr><td><strong>${f.title}</strong><br><small>${f.desc}</small><span class="no-print delete-btn" onclick="removeFood(${t.id}, ${f.id})">[X]</span></td><td align="center">${f.qty}</td><td align="right">${f.ne.toFixed(2)}</td><td align="right">${f.br.toFixed(2)}</td><td align="right">${tN.toFixed(2)}</td><td align="right">${tB.toFixed(2)}</td></tr>`;
+                return `<tr><td class="col-desc"><strong>${f.title}</strong><span class="delete-btn no-print" onclick="removeFood(${t.id}, ${f.id})">[Löschen]</span><br><small>${f.desc}</small></td><td align="center" class="col-small">${f.qty}</td><td align="right" class="col-small">${f.ne.toFixed(2)}</td><td align="right" class="col-small">${f.br.toFixed(2)}</td><td align="right" class="col-small">${tN.toFixed(2)}</td><td align="right" class="col-small">${tB.toFixed(2)}</td></tr>`;
             }).join('');
-            
             container.innerHTML += `
-                <table class="truck-table">
-                    <thead>
-                        <tr><th colspan="6" class="truck-title-row">${t.name} <span class="no-print delete-btn" onclick="removeTruck(${t.id})">[Truck löschen]</span></th></tr>
-                        <tr style="background:#eee">
-                            <th class="col-pos">Bezeichnung</th>
-                            <th class="col-qty">Menge</th>
-                            <th class="col-price">Einzel netto</th>
-                            <th class="col-price">Einzel brutto</th>
-                            <th class="col-price">Gesamt netto</th>
-                            <th class="col-price">Gesamt brutto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                        <tr class="totals-row">
-                            <td colspan="4">Summe aller Positionen ${t.name}</td>
-                            <td align="right">${sN.toFixed(2)} €</td>
-                            <td align="right">${sB.toFixed(2)} €</td>
-                        </tr>
-                    </tbody>
-                </table>`;
+            <table class="truck-table">
+                <thead>
+                    <tr><th colspan="6" class="truck-title">${t.name} <span class="delete-btn no-print" onclick="removeTruck(${t.id})">[Truck entfernen]</span></th></tr>
+                    <tr style="background:#eee"><th>Position</th><th>Menge</th><th>Einzel netto</th><th>Einzel brutto</th><th>Gesamt netto</th><th>Gesamt brutto</th></tr>
+                </thead>
+                <tbody>${rows}<tr class="totals-row"><td colspan="4">Summe aller Positionen ${t.name}</td><td align="right">${sN.toFixed(2)}</td><td align="right">${sB.toFixed(2)}</td></tr></tbody>
+            </table>`;
         });
     }
 
