@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Laras Kantinchen | Mindestabnahme</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #5d4037;
+            --accent-orange: #e67e22;
+        }
+
+        body { font-family: 'Open Sans', sans-serif; background: #95a5a6; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- EDITOR SIDEBAR --- */
+        .editor-panel { width: 420px; background: white; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.2); overflow-y: auto; z-index: 10; }
+        h2 { color: var(--primary-color); font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-top: 20px; text-transform: uppercase; }
+        
+        .section-box { background: #fdfaf9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 13px;
+        }
+
+        .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: opacity 0.2s; }
+        .btn-add { background: var(--accent-orange); margin-top: 10px; }
+        .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
+
+        /* --- A4 PREVIEW --- */
+        .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+        .a4-page { 
+            width: 210mm; height: 297mm; min-height: 297mm; background: white; padding: 20mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
+            display: flex; flex-direction: column; page-break-after: always;
+        }
+
+        .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
+        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
+        .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
+        .event-info td { padding: 3px 0; }
+        .event-info td:first-child { font-weight: bold; width: 35mm; }
+        
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 10mm 0; }
+
+        .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
+        
+        /* TABELLE OPTIMIERUNG */
+        .mindest-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 10mm; 
+            font-size: 8.5pt; 
+            table-layout: fixed; 
+        }
+        .mindest-table th, .mindest-table td { 
+            border: 1px solid #000; 
+            padding: 8px; 
+            vertical-align: top; 
+            overflow-wrap: break-word; 
+        }
+        
+        /* Fixierte Spaltenbreiten */
+        .mindest-table colgroup col.col-pos { width: 55%; } 
+        .mindest-table colgroup col.col-qty { width: 15%; }
+        .mindest-table colgroup col.col-einzel { width: 15%; }
+        .mindest-table colgroup col.col-gesamt { width: 15%; }
+
+        .mindest-table th { background: #ff6600; color: white; font-weight: 700; font-size: 11pt; }
+        .service-row td:first-child { font-weight: 600; }
+        .mindest-row { font-weight: bold; }
+        .sum-row { background: #f9f9f9; }
+        
+        .product-title { font-weight: 600; color: #5d4037; }
+        .product-desc { font-size: 9pt; color: #333; margin-top: 3px; line-height: 1.3; }
+        .vegan { color: #27ae60; font-weight: 700; }
+        .vegetarisch { color: #27ae60; font-weight: 600; }
+        
+        /* Footer Design */
+        .document-footer {
+            position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
+        }
+        .footer-col { line-height: 1.4; }
+
+        @media print {
+            .editor-panel, .no-print { display: none !important; }
+            .preview-panel { padding: 0; background: white; overflow: visible; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-panel">
+    <h2>Mindestabnahme Konfiguration</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Mindestabnahme-Menge</label>
+            <input type="number" id="mindest-qty" value="100" oninput="updateTable()">
+        </div>
+        <div class="form-group">
+            <label>Einzelpreis € (brutto)</label>
+            <input type="number" id="mindest-price" value="10.00" step="0.01" oninput="updateTable()">
+        </div>
+    </div>
+
+    <h2>Servicegebühren</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Servicegebühr Grundpreis €</label>
+            <input type="number" id="service-base" value="450.00" step="0.01" oninput="updateTable()">
+        </div>
+        <div class="form-group">
+            <label>Servicegebühr pro Stunde/Personal €</label>
+            <input type="number" id="service-extra" value="35.00" step="0.01" oninput="updateTable()">
+        </div>
+    </div>
+
+    <h2>Event-Daten</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Empfänger (Adresse)</label>
+            <textarea id="recipient" rows="4" placeholder="Firmenname&#10;Straße&#10;PLZ Ort"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Event-Name</label>
+            <input type="text" id="event-name" placeholder="z.B. Sommerfest 2025">
+        </div>
+        <div class="form-group">
+            <label>Ort / Location</label>
+            <input type="text" id="location" placeholder="z.B. Ludwigshafen">
+        </div>
+        <div class="form-group">
+            <label>Datum</label>
+            <input type="date" id="event-date">
+        </div>
+        <div class="form-group">
+            <label>Uhrzeit</label>
+            <input type="text" id="event-time" placeholder="z.B. 12:00 - 18:00 Uhr">
+        </div>
+        <div class="form-group">
+            <label>Angebot Nr.</label>
+            <input type="text" id="offer-id" placeholder="z.B. 2025-001">
+        </div>
+        <div class="form-group">
+            <label>Reserviert bis</label>
+            <input type="date" id="valid-until">
+        </div>
+        <button class="btn btn-add" onclick="updateTable()">Aktualisieren</button>
+    </div>
+
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+</div>
+
+<div class="preview-panel">
+    <div class="a4-page">
+        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
+        <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
+        <div class="address-box" id="out-recipient"></div>
+        <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
+        <table class="event-info">
+            <tr><td>Catering:</td><td id="out-date"></td></tr>
+            <tr><td>Event:</td><td id="out-event"></td></tr>
+            <tr><td>Ort / Location:</td><td id="out-location"></td></tr>
+            <tr><td>Uhrzeit:</td><td id="out-time"></td></tr>
+            <tr><td>Angebot Nr.:</td><td id="out-offer-id"></td></tr>
+        </table>
+        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
+
+        <div class="offer-header-small">
+            Hier unser Angebot für den vorgenannten Event:<br>
+            <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
+        </div>
+
+        <table class="mindest-table">
+            <colgroup>
+                <col class="col-pos">
+                <col class="col-qty">
+                <col class="col-einzel">
+                <col class="col-gesamt">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Bezeichnung</th>
+                    <th>Portionen</th>
+                    <th>Einzelpreis brutto €</th>
+                    <th>Gesamtpreis brutto €</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Wird dynamisch gefüllt -->
+            </tbody>
+        </table>
+
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatDate(iso) { 
+        return iso ? iso.split('-').reverse().join('.') : ''; 
+    }
+
+    function updateTable() {
+        // Event-Daten aktualisieren
+        const recipient = document.getElementById('recipient').value;
+        document.getElementById('out-recipient').innerHTML = recipient.replace(/\n/g, '<br>');
+        document.getElementById('out-event').textContent = document.getElementById('event-name').value;
+        document.getElementById('out-location').textContent = document.getElementById('location').value;
+        document.getElementById('out-time').textContent = document.getElementById('event-time').value;
+        document.getElementById('out-offer-id').textContent = document.getElementById('offer-id').value;
+        document.getElementById('out-offer-id-2').textContent = document.getElementById('offer-id').value;
+        document.getElementById('out-valid-until').textContent = formatDate(document.getElementById('valid-until').value);
+        document.getElementById('out-date').textContent = "am " + formatDate(document.getElementById('event-date').value);
+        document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        // Werte auslesen
+        const serviceBase = parseFloat(document.getElementById('service-base').value) || 0;
+        const serviceExtra = parseFloat(document.getElementById('service-extra').value) || 0;
+        const mindestQty = parseInt(document.getElementById('mindest-qty').value) || 0;
+        const mindestPrice = parseFloat(document.getElementById('mindest-price').value) || 0;
+        const mindestTotal = mindestQty * mindestPrice;
+
+        // Tabelle generieren
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = `
+            <!-- Servicegebühr -->
+            <tr class="service-row">
+                <td><strong>Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigunszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen und Biobesteck, Servietten, Palmblattteller, Fahrtkosten und Reinigung</strong></td>
+                <td align="center">1</td>
+                <td align="right">${serviceBase.toFixed(2)}</td>
+                <td align="right">${serviceBase.toFixed(2)}</td>
+            </tr>
+
+            <!-- Servicegebühr für weitere Stunde -->
+            <tr class="service-row">
+                <td><strong>Servicegebühr für jede weitere Stunde / Personal</strong></td>
+                <td align="center"></td>
+                <td align="right">${serviceExtra.toFixed(2)}</td>
+                <td align="right"></td>
+            </tr>
+
+            <!-- Leerzeile -->
+            <tr>
+                <td colspan="4" style="border: none; background: white; height: 5px;"></td>
+            </tr>
+
+            <!-- Pastrami Sandwich Sally -->
+            <tr>
+                <td>
+                    <div class="product-title">Pastrami Sandwich Sally</div>
+                    <div class="product-desc">Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- Pastrami Bowl -->
+            <tr>
+                <td>
+                    <div class="product-title">Pastrami Bowl</div>
+                    <div class="product-desc">Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen, hausgemachter Cocktailsoße, Röstzwiebeln, geschmolzener Cheddar darüber ein doppelseitig gebratenes Spiegelei und frische Kräuter dazu geröstete Brotecken</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- Leerzeile -->
+            <tr>
+                <td colspan="4" style="border: none; background: white; height: 5px;"></td>
+            </tr>
+
+            <!-- Käsespätzle -->
+            <tr>
+                <td>
+                    <div class="product-title">Käsespätzle mit Original Bergkäse-Mischung</div>
+                    <div class="product-desc">mit Röstzwiebeln, frischen Kräutern an Salatbouquet</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- Pflücksalat -->
+            <tr>
+                <td>
+                    <div class="product-title">Bunter Pflücksalat <span class="vegetarisch">- vegetarisch-</span></div>
+                    <div class="product-desc">Bunter Pflücksalat mit frischer Wassermelone unter Hirtenkäse-Streusel an hausgemachter Kräutervinaigrette dazu geröstete Brotecken</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- VEGAN -->
+            <tr>
+                <td>
+                    <div class="product-title"><span class="vegan">VEGAN</span></div>
+                    <div class="product-desc"><strong>Veganes Linsen-Curry</strong> (pikant) mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- Mindestabnahme-Menge -->
+            <tr class="mindest-row">
+                <td><strong>Mindestabnahme-Menge **</strong></td>
+                <td align="center">${mindestQty}</td>
+                <td align="right">${mindestPrice.toFixed(2)}</td>
+                <td align="right">${mindestTotal.toFixed(2)}</td>
+            </tr>
+
+            <!-- Leerzeile -->
+            <tr>
+                <td colspan="4" style="border: none; background: white; height: 10px;"></td>
+            </tr>
+
+            <!-- Summe -->
+            <tr class="sum-row">
+                <td colspan="3">Summe aller Positionen</td>
+                <td align="right"></td>
+            </tr>
+
+            <!-- Leerzeile -->
+            <tr>
+                <td colspan="4" style="border: none; background: white; height: 10px;"></td>
+            </tr>
+
+            <!-- Umsatzsteuer -->
+            <tr>
+                <td colspan="3">Preise incl. der gesetzl. Umsatzsteuer</td>
+                <td align="right"></td>
+            </tr>
+        `;
+    }
+
+    // Initial laden
+    updateTable();
+</script>
+</body>
+</html>
