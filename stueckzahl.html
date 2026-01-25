@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Laras Kantinchen | Konfigurator V2</title>
+    <title>Laras Kantinchen | Stückzahl-Angebot V3</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
@@ -32,7 +32,7 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; height: 297mm; min-height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
         }
@@ -44,35 +44,28 @@
         .event-info td { padding: 3px 0; }
         .event-info td:first-child { font-weight: bold; width: 35mm; }
         
-        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 10mm 0; }
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 15mm 0; }
         .intro-text { font-size: 11pt; line-height: 1.6; white-space: pre-wrap; }
 
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         
-        /* TABELLE OPTIMIERUNG - FIXED */
-        .truck-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 10mm; 
-            font-size: 8.5pt; 
-            table-layout: fixed; 
-        }
-        .truck-table th, .truck-table td { 
-            border: 1px solid #000; 
-            padding: 8px; 
-            vertical-align: top; 
-            overflow-wrap: break-word; 
-        }
+        /* TABELLE OPTIMIERUNG (Mindestabnahme-Stil) */
+        .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
+        .truck-table th, .truck-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Fixierte Spaltenbreiten mit colgroup */
-        .truck-table colgroup col.col-pos { width: 50%; } 
-        .truck-table colgroup col.col-qty { width: 9%; }
-        .truck-table colgroup col.col-money { width: 9.5%; }
+        .truck-table th { background: #ff6600; color: white; font-weight: 700; font-size: 10pt; text-align: center; }
+        
+        /* Spaltenbreiten wie in Mindestabnahme */
+        .col-pos { width: 55%; } 
+        .col-qty { width: 12%; }
+        .col-money { width: 16.5%; }
 
-        .truck-title { color: #e74c3c; font-weight: bold; font-size: 13pt; text-align: center; background: #fff !important; }
-        .totals-row { font-weight: bold; background: #f9f9f9; }
-        
-        /* Footer Design */
+        .product-title { font-weight: bold; color: var(--primary-color); font-size: 9.5pt; }
+        .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
+        .totals-row { font-weight: bold; background: #fdfaf9; }
+        .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
+
+        /* Footer */
         .document-footer {
             position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
             display: grid; grid-template-columns: repeat(4, 1fr);
@@ -81,7 +74,7 @@
         .footer-col { line-height: 1.4; }
 
         @media print {
-            .editor-panel, .no-print { display: none !important; }
+            .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
             .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
             body { background: white; }
@@ -93,15 +86,11 @@
 <div class="editor-panel">
     <h2>1. Einleitungstext</h2>
     <div class="section-box">
-        <div class="form-group">
-            <label>Anschreiben</label>
-            <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
+        <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
-vielen Dank für Ihre Anfrage. 
-Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
+vielen Dank für Ihre Anfrage. Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
 
 Wir freuen uns auf Ihre Rückmeldung!</textarea>
-        </div>
     </div>
 
     <h2>2. Trucks & Speisen</h2>
@@ -132,15 +121,10 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     <option value="pb_harry">Pastrami Bowl Harry</option>
                     <option value="pb_maxi">Pastrami Bowl Maxi</option>
                 </optgroup>
-                <optgroup label="Vegi / Vegan">
-                    <option value="spaetzle">Käsespätzle</option>
-                    <option value="salat">Pflücksalat mit Wassermelone</option>
-                    <option value="curry">Vegan Linsen-Curry</option>
-                    <option value="maultaschen">Maultaschen</option>
-                </optgroup>
                 <optgroup label="Klassiker">
-                    <option value="pommes">Pommes Frites</option>
-                    <option value="wurst">Bratwurst / Saumagen</option>
+                    <option value="spaetzle">Käsespätzle</option>
+                    <option value="salat">Pflücksalat</option>
+                    <option value="curry">Linsen-Curry</option>
                     <option value="service">Servicegebühr & Truck</option>
                 </optgroup>
             </select>
@@ -164,7 +148,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 </div>
 
 <div class="preview-panel">
-    <div class="a4-page" id="page-1">
+    <div class="a4-page">
         <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
         <div class="address-box" id="out-recipient"></div>
@@ -187,7 +171,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
-    <div class="a4-page" id="page-2">
+    <div class="a4-page">
         <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
         <div class="offer-header-small">
             Hier unser Angebot für den vorgenannten Event:<br>
@@ -206,19 +190,16 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
 <script>
     const presets = {
-        ps_sally: { title: "Pastrami Sandwich Sally", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
-        ps_harry: { title: "Pastrami Sandwich Harry", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
-        ps_maxi: { title: "Pastrami Sandwich Maxi", price: 9.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
-        pb_sally: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
-        pb_harry: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
-        pb_maxi: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken, knackiger Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
-        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung – vegetarisch", price: 8.50, desc: "Dazu Röstzwiebeln und frische Kräuter an Salatbouquet" },
-        salat: { title: "Bunter Pflücksalat mit frischer Wassermelone", price: 7.50, desc: "An Hirtenkäsewürfel an hausgem. Kräutervinaigrette dazu Baguette" },
-        curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "Mit frischem Koriander, einem Klecks creme vega & Limette an Basmatireis" },
-        pommes: { title: "Portion Pommes Frites (frisch)", price: 4.50, desc: "Incl. Heinz-Ketchup / Heinz-Pommes Soße" },
-        wurst: { title: "Bratwurst / Saumagenbratwurst oder Feuerwurst", price: 5.50, desc: "Im Brötchen incl. Ketchup / Senf" },
-        maultaschen: { title: "Geschmelzte Maultaschen", price: 8.50, desc: "Mit Röstzwiebeln und Balsamicoreduktion an Salatbouquet" },
-        service: { title: "Servicegebühr inkl. Anfahrt", price: 500.00, desc: "Auf- und Abbau und Verköstigungszeit mit 1 Oldtimer Truck, 2-3 x Personal, Blumen- und Kräuterdeko, Vorbereitung, Bioverpackungen und Biobesteck, Servietten, Palmblattteller, Fahrtkosten und Endreinigung" }
+        ps_sally: { title: "Pastrami Sandwich Sally", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
+        ps_harry: { title: "Pastrami Sandwich Harry", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
+        ps_maxi: { title: "Pastrami Sandwich Maxi", price: 9.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        pb_sally: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
+        pb_harry: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
+        pb_maxi: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", price: 8.50, desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
+        salat: { title: "Bunter Pflücksalat - vegetarisch -", price: 7.50, desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
+        curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" },
+        service: { title: "Servicegebühr inkl. Auf- und Abbau", price: 500.00, desc: "Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung" }
     };
 
     let trucks = [];
@@ -272,6 +253,18 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         render();
     }
 
+    function removeFood(tId, fId) {
+        const truck = trucks.find(t => t.id == tId);
+        truck.items = truck.items.filter(f => f.id !== fId);
+        render();
+    }
+
+    function removeTruck(id) {
+        trucks = trucks.filter(t => t.id !== id);
+        updateTruckList();
+        render();
+    }
+
     function render() {
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
@@ -281,37 +274,33 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 const tN = f.qty * f.ne; const tB = f.qty * f.br;
                 sN += tN; sB += tB;
                 return `<tr>
-                    <td><strong>${f.title}</strong><br><small>${f.desc}</small></td>
-                    <td align="center">${f.qty}</td>
-                    <td align="right">${f.ne.toFixed(2)}</td>
-                    <td align="right">${f.br.toFixed(2)}</td>
-                    <td align="right">${tN.toFixed(2)}</td>
-                    <td align="right">${tB.toFixed(2)}</td>
+                    <td class="col-pos">
+                        <div class="product-title">${f.title}</div>
+                        <div class="product-desc">${f.desc}</div>
+                        <span class="delete-overlay no-print" onclick="removeFood(${t.id}, ${f.id})">[Löschen]</span>
+                    </td>
+                    <td align="center" class="col-qty">${f.qty}</td>
+                    <td align="right" class="col-money">${f.ne.toFixed(2)}</td>
+                    <td align="right" class="col-money">${f.br.toFixed(2)}</td>
+                    <td align="right" class="col-money">${tN.toFixed(2)}</td>
+                    <td align="right" class="col-money">${tB.toFixed(2)}</td>
                 </tr>`;
             }).join('');
             
             container.innerHTML += `
                 <table class="truck-table">
-                    <colgroup>
-                        <col class="col-pos">
-                        <col class="col-qty">
-                        <col class="col-money">
-                        <col class="col-money">
-                        <col class="col-money">
-                        <col class="col-money">
-                    </colgroup>
                     <thead>
-                        <tr><th colspan="6" class="truck-title">${t.name}</th></tr>
-                        <tr style="background:#eee">
-                            <th>Position</th><th>Menge</th><th>Einzel € netto</th><th>Einzel € brutto</th><th>Gesamt € netto</th><th>Gesamt € brutto</th>
+                        <tr><th colspan="6">${t.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${t.id})"> (Truck entfernen)</span></th></tr>
+                        <tr style="background:#eee; font-size:7.5pt;">
+                            <th class="col-pos">Bezeichnung</th><th class="col-qty">Portionen</th><th class="col-money">Einzel € netto</th><th class="col-money">Einzel € brutto</th><th class="col-money">Gesamt € netto</th><th class="col-money">Gesamt € brutto</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${rows}
                         <tr class="totals-row">
                             <td colspan="4">Summe aller Positionen ${t.name}</td>
-                            <td align="right">${sN.toFixed(2)} €</td>
-                            <td align="right">${sB.toFixed(2)} €</td>
+                            <td align="right">${sN.toFixed(2)}</td>
+                            <td align="right">${sB.toFixed(2)}</td>
                         </tr>
                     </tbody>
                 </table>`;
