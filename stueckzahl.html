@@ -49,14 +49,25 @@
 
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         
-        /* TABELLE OPTIMIERUNG */
-        .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
-        .truck-table th, .truck-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
+        /* TABELLE OPTIMIERUNG - FIXED */
+        .truck-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 10mm; 
+            font-size: 8.5pt; 
+            table-layout: fixed; 
+        }
+        .truck-table th, .truck-table td { 
+            border: 1px solid #000; 
+            padding: 8px; 
+            vertical-align: top; 
+            overflow-wrap: break-word; 
+        }
         
-        /* Fixierte Spaltenbreiten */
-        .col-pos { width: 55%; } 
-        .col-qty { width: 7%; }
-        .col-money { width: 9.5%; }
+        /* Fixierte Spaltenbreiten mit colgroup */
+        .truck-table colgroup col.col-pos { width: 55%; } 
+        .truck-table colgroup col.col-qty { width: 7%; }
+        .truck-table colgroup col.col-money { width: 9.5%; }
 
         .truck-title { color: #e74c3c; font-weight: bold; font-size: 13pt; text-align: center; background: #fff !important; }
         .totals-row { font-weight: bold; background: #f9f9f9; }
@@ -270,21 +281,29 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 const tN = f.qty * f.ne; const tB = f.qty * f.br;
                 sN += tN; sB += tB;
                 return `<tr>
-                    <td class="col-pos"><strong>${f.title}</strong><br><small>${f.desc}</small></td>
-                    <td align="center" class="col-qty">${f.qty}</td>
-                    <td align="right" class="col-money">${f.ne.toFixed(2)}</td>
-                    <td align="right" class="col-money">${f.br.toFixed(2)}</td>
-                    <td align="right" class="col-money">${tN.toFixed(2)}</td>
-                    <td align="right" class="col-money">${tB.toFixed(2)}</td>
+                    <td><strong>${f.title}</strong><br><small>${f.desc}</small></td>
+                    <td align="center">${f.qty}</td>
+                    <td align="right">${f.ne.toFixed(2)}</td>
+                    <td align="right">${f.br.toFixed(2)}</td>
+                    <td align="right">${tN.toFixed(2)}</td>
+                    <td align="right">${tB.toFixed(2)}</td>
                 </tr>`;
             }).join('');
             
             container.innerHTML += `
                 <table class="truck-table">
+                    <colgroup>
+                        <col class="col-pos">
+                        <col class="col-qty">
+                        <col class="col-money">
+                        <col class="col-money">
+                        <col class="col-money">
+                        <col class="col-money">
+                    </colgroup>
                     <thead>
                         <tr><th colspan="6" class="truck-title">${t.name}</th></tr>
                         <tr style="background:#eee">
-                            <th class="col-pos">Position</th><th class="col-qty">Menge</th><th class="col-money">Einzel € netto</th><th class="col-money">Einzel € brutto</th><th class="col-money">Gesamt € netto</th><th class="col-money">Gesamt € brutto</th>
+                            <th>Position</th><th>Menge</th><th>Einzel € netto</th><th>Einzel € brutto</th><th>Gesamt € netto</th><th>Gesamt € brutto</th>
                         </tr>
                     </thead>
                     <tbody>
