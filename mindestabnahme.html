@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Laras Kantinchen | Mindestabnahme-Angebot</title>
+    <title>Laras Kantinchen | Mindestabnahme</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
@@ -24,16 +24,14 @@
             width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 13px;
         }
 
-        .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: opacity 0.2s; }
-        .btn-update { background: var(--accent-orange); margin-top: 10px; }
-        .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
+        .btn-print { background: #27ae60; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; margin-top: 30px; font-size: 16px; }
 
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; height: 297mm; min-height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: column; page-break-after: always;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -44,23 +42,25 @@
         .event-info td:first-child { font-weight: bold; width: 35mm; }
         
         .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 10mm 0; }
+        .intro-text { font-size: 11pt; line-height: 1.6; white-space: pre-wrap; margin-bottom: 10mm; }
+
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         
         /* TABELLE OPTIMIERUNG */
         .mindest-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .mindest-table th, .mindest-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Spaltenbreiten wie gewünscht */
+        /* Spaltenbreiten */
         .col-pos { width: 55%; } 
         .col-qty { width: 12%; }
         .col-money { width: 16.5%; }
 
         .mindest-table th { color: var(--accent-orange); font-weight: 700; font-size: 11pt; text-align: center; }
-        .product-title { font-weight: bold; color: var(--primary-color); font-size: 10pt; }
+        .product-title { font-weight: bold; color: var(--primary-color); }
         .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
         .vegan { color: #2e7d32; font-weight: bold; }
-        .vegi { color: #2e7d32; }
 
+        /* Footer */
         .document-footer {
             position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
             display: grid; grid-template-columns: repeat(4, 1fr);
@@ -79,7 +79,20 @@
 <body>
 
 <div class="editor-panel">
-    <h2>Preise & Gebühren</h2>
+    <h2>1. Anschreiben</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Einleitungstext</label>
+            <textarea id="inp-intro" rows="6" oninput="render()">Sehr geehrte Damen und Herren,
+
+vielen Dank für Ihre Anfrage. 
+Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event auf Basis einer Mindestabnahme.
+
+Wir freuen uns auf Ihre Rückmeldung!</textarea>
+        </div>
+    </div>
+
+    <h2>2. Preise & Gebühren</h2>
     <div class="section-box">
         <div class="form-group">
             <label>Mindestabnahme Menge</label>
@@ -99,24 +112,16 @@
         </div>
     </div>
 
-    <h2>Anschreiben</h2>
-    <div class="section-box">
-        <textarea id="inp-intro" rows="5" oninput="render()">Sehr geehrte Damen und Herren,
-
-vielen Dank für Ihre Anfrage. Anbei erhalten Sie unser Angebot auf Basis einer Mindestabnahme.</textarea>
-    </div>
-
-    <button class="btn btn-print" onclick="window.print()">PDF SPEICHERN</button>
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
     <div class="a4-page">
         <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
-        
         <div class="address-box" id="out-recipient"></div>
         <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
-
+        
         <table class="event-info">
             <tr><td>Catering:</td><td id="out-date"></td></tr>
             <tr><td>Event:</td><td id="out-event"></td></tr>
@@ -124,11 +129,20 @@ vielen Dank für Ihre Anfrage. Anbei erhalten Sie unser Angebot auf Basis einer 
             <tr><td>Uhrzeit:</td><td id="out-time"></td></tr>
             <tr><td>Angebot Nr.:</td><td id="out-offer-id"></td></tr>
         </table>
-
-        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
         
-        <div id="out-intro" style="margin-bottom: 10mm; font-size: 10.5pt; white-space: pre-wrap;"></div>
+        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
+        <div class="intro-text" id="out-intro"></div>
 
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
+    </div>
+
+    <div class="a4-page">
+        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
         <div class="offer-header-small">
             Hier unser Angebot für den vorgenannten Event:<br>
             <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
@@ -209,7 +223,7 @@ vielen Dank für Ihre Anfrage. Anbei erhalten Sie unser Angebot auf Basis einer 
                 <td></td><td></td><td></td>
             </tr>
             <tr>
-                <td><div class="product-title">Bunter Pflücksalat <span class="vegi">- vegetarisch -</span></div><div class="product-desc">mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken</div></td>
+                <td><div class="product-title">Bunter Pflücksalat - vegetarisch -</div><div class="product-desc">mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken</div></td>
                 <td></td><td></td><td></td>
             </tr>
             <tr>
@@ -224,13 +238,12 @@ vielen Dank für Ihre Anfrage. Anbei erhalten Sie unser Angebot auf Basis einer 
                 <td align="right">${(qty * price).toFixed(2)}</td>
             </tr>
             <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
-            <tr style="font-weight:bold;">
+            <tr style="font-weight:bold; font-size:10pt;">
                 <td colspan="3">Summe aller Positionen</td>
-                <td align="right">${(base + (qty * price)).toFixed(2)}</td>
+                <td align="right">${(base + (qty * price)).toFixed(2)} €</td>
             </tr>
             <tr>
-                <td colspan="3" style="border:none; font-size:7pt; padding-top:15px;">Preise incl. der gesetzl. Umsatzsteuer</td>
-                <td style="border:none;"></td>
+                <td colspan="4" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
             </tr>
         `;
         document.getElementById('table-body').innerHTML = html;
