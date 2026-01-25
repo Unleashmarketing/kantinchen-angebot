@@ -32,7 +32,7 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; height: 297mm; min-height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
         }
@@ -44,7 +44,7 @@
         .event-info td { padding: 3px 0; }
         .event-info td:first-child { font-weight: bold; width: 35mm; }
         
-        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 15mm 0; }
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 10mm 0; }
         .intro-text { font-size: 11pt; line-height: 1.6; white-space: pre-wrap; }
 
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
@@ -53,17 +53,24 @@
         .truck-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .truck-table th, .truck-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Spaltenbreiten für maximalen Platz in "Position" */
-        .col-pos { width: 50%; } 
+        /* Fixierte Spaltenbreiten */
+        .col-pos { width: 55%; } 
         .col-qty { width: 7%; }
-        .col-money { width: 10.75%; }
+        .col-money { width: 9.5%; }
 
         .truck-title { color: #e74c3c; font-weight: bold; font-size: 13pt; text-align: center; background: #fff !important; }
         .totals-row { font-weight: bold; background: #f9f9f9; }
-        .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
+        
+        /* Footer Design */
+        .document-footer {
+            position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
+        }
+        .footer-col { line-height: 1.4; }
 
         @media print {
-            .editor-panel, .delete-overlay, .no-print { display: none !important; }
+            .editor-panel, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
             .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
             body { background: white; }
@@ -160,6 +167,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </table>
         <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
         <div class="intro-text" id="out-intro"></div>
+
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
     </div>
 
     <div class="a4-page" id="page-2">
@@ -169,6 +183,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
         </div>
         <div id="tables-container"></div>
+
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
     </div>
 </div>
 
@@ -226,12 +247,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         render();
     }
 
-    function removeTruck(id) {
-        trucks = trucks.filter(t => t.id !== id);
-        updateTruckList();
-        render();
-    }
-
     function updateTruckList() {
         const sel = document.getElementById('food-target');
         sel.innerHTML = trucks.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
@@ -246,12 +261,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         render();
     }
 
-    function removeFood(tId, fId) {
-        const truck = trucks.find(t => t.id == tId);
-        truck.items = truck.items.filter(f => f.id !== fId);
-        render();
-    }
-
     function render() {
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
@@ -261,7 +270,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 const tN = f.qty * f.ne; const tB = f.qty * f.br;
                 sN += tN; sB += tB;
                 return `<tr>
-                    <td class="col-pos"><strong>${f.title}</strong><br><small>${f.desc}</small><span class="delete-overlay no-print" onclick="removeFood(${t.id}, ${f.id})"> [x]</span></td>
+                    <td class="col-pos"><strong>${f.title}</strong><br><small>${f.desc}</small></td>
                     <td align="center" class="col-qty">${f.qty}</td>
                     <td align="right" class="col-money">${f.ne.toFixed(2)}</td>
                     <td align="right" class="col-money">${f.br.toFixed(2)}</td>
@@ -273,7 +282,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             container.innerHTML += `
                 <table class="truck-table">
                     <thead>
-                        <tr><th colspan="6" class="truck-title">${t.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${t.id})">[Truck entfernen]</span></th></tr>
+                        <tr><th colspan="6" class="truck-title">${t.name}</th></tr>
                         <tr style="background:#eee">
                             <th class="col-pos">Position</th><th class="col-qty">Menge</th><th class="col-money">Einzel € netto</th><th class="col-money">Einzel € brutto</th><th class="col-money">Gesamt € netto</th><th class="col-money">Gesamt € brutto</th>
                         </tr>
