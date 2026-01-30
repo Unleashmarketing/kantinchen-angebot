@@ -26,11 +26,14 @@
         .section-box { background: #fdfaf9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; text-transform: uppercase; }
-        .form-group input, .form-group textarea { 
+        .form-group input, .form-group textarea, .form-group select { 
             width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 13px;
         }
 
-        .btn-print { background: #27ae60; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; margin-top: 30px; font-size: 16px; }
+        .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: opacity 0.2s; }
+        .btn-truck { background: var(--primary-color); }
+        .btn-food { background: var(--accent-orange); margin-top: 10px; }
+        .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
 
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
@@ -57,9 +60,9 @@
         .mindest-table th, .mindest-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
         /* Spaltenbreiten */
-        .col-pos { width: 55%; } 
-        .col-qty { width: 12%; }
-        .col-money { width: 16.5%; }
+        .col-pos { width: 70%; } 
+        .col-qty { width: 15%; }
+        .col-money { width: 15%; }
 
         .mindest-table th { 
             background: var(--accent-orange); 
@@ -73,6 +76,7 @@
         .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
         .vegan { color: #2e7d32; font-weight: bold; font-size: 9pt; }
         .totals-row { font-weight: bold; background: #fdfaf9; }
+        .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
 
         /* Footer */
         .document-footer {
@@ -83,7 +87,7 @@
         .footer-col { line-height: 1.4; }
 
         @media print {
-            .editor-panel, .no-print { display: none !important; }
+            .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
             .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
             body { background: white; }
@@ -97,7 +101,7 @@
     <div class="section-box">
         <div class="form-group">
             <label>Einleitungstext</label>
-            <textarea id="inp-intro" rows="6" oninput="render()">Sehr geehrte Damen und Herren,
+            <textarea id="inp-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
 vielen Dank für Ihre Anfrage. 
 Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event auf Basis einer Mindestabnahme.
@@ -106,7 +110,53 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
-    <h2>2. Preise & Gebühren</h2>
+    <h2>2. Trucks & Speisen</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Truck Name</label>
+            <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
+        </div>
+        <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
+        
+        <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
+        
+        <div class="form-group">
+            <label>Ziel-Truck</label>
+            <select id="food-target"></select>
+        </div>
+        <div class="form-group">
+            <label>Produkt-Vorlagen</label>
+            <select id="food-presets" onchange="loadPreset()">
+                <option value="">-- Bitte wählen --</option>
+                <optgroup label="Pastrami Sandwiches">
+                    <option value="ps_sally">Pastrami Sandwich Sally</option>
+                    <option value="ps_harry">Pastrami Sandwich Harry</option>
+                    <option value="ps_maxi">Pastrami Sandwich Maxi</option>
+                </optgroup>
+                <optgroup label="Pastrami Bowls">
+                    <option value="pb_sally">Pastrami Bowl Sally</option>
+                    <option value="pb_harry">Pastrami Bowl Harry</option>
+                    <option value="pb_maxi">Pastrami Bowl Maxi</option>
+                </optgroup>
+                <optgroup label="Klassiker">
+                    <option value="spaetzle">Käsespätzle</option>
+                    <option value="salat">Pflücksalat</option>
+                    <option value="curry">Linsen-Curry</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Speise Titel</label>
+            <input type="text" id="food-title" placeholder="z.B. Pastrami Sandwich Sally">
+        </div>
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea id="food-desc" rows="3"></textarea>
+        </div>
+        <button class="btn btn-food" onclick="addFood()">+ Speise hinzufügen</button>
+    </div>
+
+    <h2>3. Preise & Gebühren</h2>
     <div class="section-box">
         <div class="form-group">
             <label>Mindestabnahme Menge</label>
@@ -126,7 +176,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
-    <button class="btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
@@ -161,17 +211,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
         </div>
 
-        <table class="mindest-table">
-            <thead>
-                <tr>
-                    <th class="col-pos">Bezeichnung</th>
-                    <th class="col-qty">Portionen</th>
-                    <th class="col-money">Einzelpreis brutto €</th>
-                    <th class="col-money">Gesamtpreis brutto €</th>
-                </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-        </table>
+        <div id="tables-container"></div>
 
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
@@ -183,6 +223,20 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 </div>
 
 <script>
+    const presets = {
+        ps_sally: { title: "Pastrami Sandwich Sally", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
+        ps_harry: { title: "Pastrami Sandwich Harry", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
+        ps_maxi: { title: "Pastrami Sandwich Maxi", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        pb_sally: { title: "Pastrami Bowl Sally", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
+        pb_harry: { title: "Pastrami Bowl Harry", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
+        pb_maxi: { title: "Pastrami Bowl Maxi", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
+        salat: { title: "Bunter Pflücksalat - vegetarisch -", desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
+        curry: { title: "Veganes Linsen-Curry (pikant)", desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" }
+    };
+
+    let trucks = [];
+
     function init() {
         const p = new URLSearchParams(window.location.search);
         if(p.get('recipient')) {
@@ -195,11 +249,57 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
             document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
             document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+            updateIntro();
         }
-        render();
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+
+    function loadPreset() {
+        const key = document.getElementById('food-presets').value;
+        if(presets[key]) {
+            document.getElementById('food-title').value = presets[key].title;
+            document.getElementById('food-desc').value = presets[key].desc;
+        }
+    }
+
+    function addTruck() {
+        const name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
+        trucks.push({ id: Date.now(), name: name.toUpperCase(), items: [] });
+        updateTruckList();
+        render();
+    }
+
+    function updateTruckList() {
+        const sel = document.getElementById('food-target');
+        sel.innerHTML = trucks.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    }
+
+    function addFood() {
+        const tId = document.getElementById('food-target').value;
+        const truck = trucks.find(t => t.id == tId);
+        if(!truck) return alert("Bitte erst einen Truck anlegen!");
+        
+        truck.items.push({ 
+            id: Date.now(), 
+            title: document.getElementById('food-title').value, 
+            desc: document.getElementById('food-desc').value
+        });
+        render();
+    }
+
+    function removeFood(tId, fId) {
+        const truck = trucks.find(t => t.id == tId);
+        truck.items = truck.items.filter(f => f.id !== fId);
+        render();
+    }
+
+    function removeTruck(id) {
+        trucks = trucks.filter(t => t.id !== id);
+        updateTruckList();
+        render();
+    }
 
     function render() {
         const qty = parseInt(document.getElementById('inp-qty').value) || 0;
@@ -207,80 +307,87 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         const base = parseFloat(document.getElementById('inp-service-base').value) || 0;
         const extra = parseFloat(document.getElementById('inp-service-extra').value) || 0;
         
-        document.getElementById('out-intro').textContent = document.getElementById('inp-intro').value;
-
-        const html = `
-            <tr>
-                <td>
-                    <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
-                    <div class="product-desc">Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
-                </td>
-                <td align="center">1</td>
-                <td align="right">${base.toFixed(2)}</td>
-                <td align="right">${base.toFixed(2)}</td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
-                </td>
-                <td></td>
-                <td align="right">${extra.toFixed(2)}</td>
-                <td></td>
-            </tr>
-            <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
-            <tr>
-                <td>
-                    <div class="product-title">Pastrami Sandwich Sally</div>
-                    <div class="product-desc">Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar</div>
-                </td>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="product-title">Pastrami Bowl</div>
-                    <div class="product-desc">Gegrillte Pastrami auf Salat mit mildem Senf, Gurken-Schnitzen, Cocktailsoße, Röstzwiebeln, Cheddar, Spiegelei und Brotecken</div>
-                </td>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="product-title">Käsespätzle mit Original Bergkäse-Mischung</div>
-                    <div class="product-desc">mit Röstzwiebeln, frischen Kräutern an Salatbouquet</div>
-                </td>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="product-title">Bunter Pflücksalat - vegetarisch -</div>
-                    <div class="product-desc">mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken</div>
-                </td>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="vegan">VEGAN</div>
-                    <div class="product-title">Veganes Linsen-Curry (pikant)</div>
-                    <div class="product-desc">mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis</div>
-                </td>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
-            <tr class="totals-row">
-                <td><strong>Mindestabnahme-Menge **</strong></td>
-                <td align="center">${qty}</td>
-                <td align="right">${price.toFixed(2)}</td>
-                <td align="right">${(qty * price).toFixed(2)}</td>
-            </tr>
-            <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
-            <tr style="font-weight:bold; font-size:10pt;">
-                <td colspan="3"><strong>Summe aller Positionen</strong></td>
-                <td align="right">${(base + (qty * price)).toFixed(2)} €</td>
-            </tr>
-            <tr>
-                <td colspan="4" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
-            </tr>
+        const container = document.getElementById('tables-container');
+        container.innerHTML = "";
+        
+        // Service-Tabelle
+        container.innerHTML += `
+            <table class="mindest-table">
+                <thead>
+                    <tr>
+                        <th class="col-pos">Bezeichnung</th>
+                        <th class="col-qty">Portionen</th>
+                        <th class="col-money">Preis brutto €</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
+                            <div class="product-desc">Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
+                        </td>
+                        <td align="center">1</td>
+                        <td align="right">${base.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
+                        </td>
+                        <td></td>
+                        <td align="right">${extra.toFixed(2)}</td>
+                    </tr>
+                </tbody>
+            </table>
         `;
-        document.getElementById('table-body').innerHTML = html;
+        
+        // Truck-Tabellen mit Speisen (ohne Preise)
+        trucks.forEach(truck => {
+            let rows = truck.items.map(food => {
+                return `<tr>
+                    <td>
+                        <div class="product-title">${food.title}</div>
+                        <div class="product-desc">${food.desc}</div>
+                        <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>`;
+            }).join('');
+            
+            container.innerHTML += `
+                <table class="mindest-table">
+                    <thead>
+                        <tr>
+                            <th colspan="3">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        });
+        
+        // Gesamt-Tabelle
+        container.innerHTML += `
+            <table class="mindest-table">
+                <tbody>
+                    <tr class="totals-row">
+                        <td><strong>Mindestabnahme-Menge **</strong></td>
+                        <td align="center">${qty}</td>
+                        <td align="right">${price.toFixed(2)}</td>
+                    </tr>
+                    <tr><td colspan="3" style="border:none; height:10px;"></td></tr>
+                    <tr style="font-weight:bold; font-size:10pt;">
+                        <td colspan="2"><strong>Summe aller Positionen</strong></td>
+                        <td align="right">${(base + (qty * price)).toFixed(2)} €</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
     }
 
     init();
