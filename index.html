@@ -97,14 +97,14 @@
 
         .type-grid { 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
+            grid-template-columns: repeat(2, 1fr); 
             gap: 15px; 
         }
 
         .type-card {
             border: 2px solid #eee;
             border-radius: 10px;
-            padding: 35px 10px; /* Vertikal zentrierter */
+            padding: 35px 10px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -190,6 +190,10 @@
 
         <div class="type-card" onclick="submitTo('stueckzahl.html')">
             <h4>Stückzahl</h4>
+        </div>
+
+        <div class="type-card" onclick="submitTo('pro-person.html')">
+            <h4>Pro Person</h4>
         </div>
     </div>
 </div>
