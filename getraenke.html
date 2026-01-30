@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Laras Kantinchen | Getränke-Angebot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #5d4037;
+            --accent-orange: #e67e22;
+        }
+
+        body { font-family: 'Open Sans', sans-serif; background: #95a5a6; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- EDITOR SIDEBAR --- */
+        .editor-panel { width: 420px; background: white; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.2); overflow-y: auto; z-index: 10; }
+        h2 { color: var(--primary-color); font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-top: 20px; text-transform: uppercase; }
+        
+        .section-box { background: #fdfaf9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 13px;
+        }
+
+        .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: opacity 0.2s; }
+        .btn-stand { background: var(--primary-color); }
+        .btn-drink { background: var(--accent-orange); margin-top: 10px; }
+        .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
+
+        /* --- A4 PREVIEW --- */
+        .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+        .a4-page { 
+            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
+            display: flex; flex-direction: column; page-break-after: always;
+        }
+
+        .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
+        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
+        .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
+        .event-info td { padding: 3px 0; }
+        .event-info td:first-child { font-weight: bold; width: 35mm; }
+        
+        .reserviert-banner { color: var(--accent-orange); font-weight: bold; font-style: italic; text-align: center; font-size: 14pt; margin: 15mm 0; }
+        .intro-text { font-size: 11pt; line-height: 1.6; white-space: pre-wrap; }
+
+        .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
+        
+        /* EINHEITLICHES TABELLENDESIGN */
+        .drink-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
+        .drink-table th, .drink-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
+        
+        .drink-table th { 
+            background: var(--accent-orange); 
+            color: white; 
+            font-weight: 700; 
+            font-size: 10pt; 
+            text-align: center; 
+        }
+        
+        /* Spaltenbreiten */
+        .col-drink { width: 60%; } 
+        .col-size { width: 15%; }
+        .col-price { width: 25%; }
+
+        .drink-title { font-weight: bold; color: var(--primary-color); font-size: 9.5pt; }
+        .drink-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
+        .totals-row { font-weight: bold; background: #fdfaf9; }
+        .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
+
+        /* Footer */
+        .document-footer {
+            position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
+        }
+        .footer-col { line-height: 1.4; }
+
+        @media print {
+            .editor-panel, .delete-overlay, .no-print { display: none !important; }
+            .preview-panel { padding: 0; background: white; overflow: visible; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-panel">
+    <h2>1. Einleitungstext</h2>
+    <div class="section-box">
+        <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
+
+vielen Dank für Ihre Anfrage. Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
+
+Wir freuen uns auf Ihre Rückmeldung!</textarea>
+    </div>
+
+    <h2>2. Getränke-Stände</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Stand Name</label>
+            <input type="text" id="stand-name" placeholder="z.B. Limo & Bier">
+        </div>
+        <div class="form-group">
+            <label>Servicegebühr (€ Brutto)</label>
+            <input type="number" id="stand-service" value="500.00" step="0.01">
+        </div>
+        <button class="btn btn-stand" onclick="addStand()">+ Stand hinzufügen</button>
+        
+        <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
+        
+        <div class="form-group">
+            <label>Ziel-Stand</label>
+            <select id="drink-target"></select>
+        </div>
+        <div class="form-group">
+            <label>Getränke-Vorlagen</label>
+            <select id="drink-presets" onchange="loadPreset()">
+                <option value="">-- Bitte wählen --</option>
+                <optgroup label="Alkoholfrei">
+                    <option value="limo">Laute Limo 0,33l</option>
+                    <option value="wasser">Mineralwasser 0,5l</option>
+                    <option value="pils_af">Plan B - alkoholfreies Pils 0,33l</option>
+                </optgroup>
+                <optgroup label="Bier">
+                    <option value="pils">Pils 0,33l</option>
+                    <option value="helles">Helles 0,33l</option>
+                    <option value="radler">Zischer - Radler 0,33l</option>
+                    <option value="pale_ale">Pale Ale 0,5l</option>
+                </optgroup>
+                <optgroup label="Wein & Sekt">
+                    <option value="aperol">Aperol-Spritz 0,2l</option>
+                    <option value="riesling">Pfälzer Riesling Schorle 0,5l</option>
+                    <option value="weissherbst">Pfälzer Weißherbst Schorle 0,5l</option>
+                    <option value="weisswein">Weißwein 0,2l</option>
+                    <option value="rose">Rosé 0,2l</option>
+                </optgroup>
+                <optgroup label="Heißgetränke">
+                    <option value="gluehwein">Winzer-Glühwein 0,2l</option>
+                    <option value="punsch">Alkoholfreier Apfel-Punsch</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Getränk / Größe / Preis</label>
+            <input type="text" id="drink-title" style="margin-bottom:5px" placeholder="z.B. Laute Limo">
+            <div style="display:flex; gap:5px">
+                <input type="text" id="drink-size" placeholder="0,33l" style="flex:1">
+                <input type="number" id="drink-price" step="0.01" placeholder="3,50" style="flex:1">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea id="drink-desc" rows="3" placeholder="Optional"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Pfand (€)</label>
+            <input type="number" id="drink-pfand" step="0.50" value="0" placeholder="z.B. 1,00 oder 3,00">
+        </div>
+        <button class="btn btn-drink" onclick="addDrink()">+ Getränk hinzufügen</button>
+    </div>
+
+    <h2>3. Mindestumsatz</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Mindestumsatz Getränke (€)</label>
+            <input type="number" id="inp-min-umsatz" value="0" step="0.01" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Pro Person (€)</label>
+            <input type="number" id="inp-per-person" value="0" step="0.01" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Mindestanzahl Personen</label>
+            <input type="number" id="inp-min-persons" value="0" oninput="render()">
+        </div>
+    </div>
+
+    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+</div>
+
+<div class="preview-panel">
+    <div class="a4-page">
+        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
+        <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
+        <div class="address-box" id="out-recipient"></div>
+        <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
+        
+        <table class="event-info">
+            <tr><td>Catering:</td><td id="out-date"></td></tr>
+            <tr><td>Event:</td><td id="out-event"></td></tr>
+            <tr><td>Ort / Location:</td><td id="out-location"></td></tr>
+            <tr><td>Uhrzeit:</td><td id="out-time"></td></tr>
+            <tr><td>Angebot Nr.:</td><td id="out-offer-id"></td></tr>
+        </table>
+        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
+        <div class="intro-text" id="out-intro"></div>
+
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
+    </div>
+
+    <div class="a4-page">
+        <img src="https://via.placeholder.com/200x120?text=LARAS+LOGO" class="header-logo">
+        <div class="offer-header-small">
+            Hier unser Angebot für den vorgenannten Event:<br>
+            <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
+        </div>
+        <div id="tables-container"></div>
+
+        <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt;"></div>
+
+        <div class="document-footer">
+            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>laras-kantinchen@email.de</div>
+            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
+            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const presets = {
+        limo: { title: "Laute Limo", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Fruchtig in der Zubereitung, weniger süß, mit weniger Kohlensäure. Sorten: Zitrone, Grapefrucht und Cola-Orange" },
+        wasser: { title: "Mineralwasser classic / still", size: "0,5l", price: 3.50, pfand: 1.00, desc: "" },
+        pils_af: { title: "Plan B - alkoholfreies Pils", size: "0,33l", price: 3.50, pfand: 1.00, desc: "" },
+        pils: { title: "Pils", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Privatbrauerei Sander, Worms" },
+        helles: { title: "Helles", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Privatbrauerei Sander, Worms" },
+        radler: { title: "Zischer - Radler", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Privatbrauerei Sander, Worms" },
+        pale_ale: { title: "Pale Ale", size: "0,5l", price: 4.00, pfand: 1.00, desc: "Privatbrauerei Sander, Worms" },
+        aperol: { title: "Aperol-Spritz", size: "0,2l", price: 7.00, pfand: 3.00, desc: "" },
+        riesling: { title: "Pfälzer Riesling -trocken-", size: "0,5l", price: 5.00, pfand: 3.00, desc: "Weinschorle" },
+        weissherbst: { title: "Pfälzer Weißherbst -trocken-", size: "0,5l", price: 5.00, pfand: 3.00, desc: "Weinschorle" },
+        weisswein: { title: "Riesling-Cuvée \"Tagtraum\"", size: "0,2l", price: 6.00, pfand: 3.00, desc: "Weingut Ellermann & Spiegel" },
+        rose: { title: "Rose-Cuvée \"Windrose\"", size: "0,2l", price: 6.00, pfand: 3.00, desc: "Weingut Ellermann & Spiegel" },
+        gluehwein: { title: "Winzer-Glühwein", size: "0,2l", price: 4.00, pfand: 2.00, desc: "Weingut Metzger" },
+        punsch: { title: "Alkoholfreier Apfel-Punsch mit Zimtstange", size: "", price: 3.00, pfand: 2.00, desc: "" }
+    };
+
+    let stands = [];
+
+    function init() {
+        const p = new URLSearchParams(window.location.search);
+        if(p.get('recipient')) {
+            document.getElementById('out-recipient').innerHTML = decodeURIComponent(escape(atob(p.get('recipient')))).replace(/\n/g, '<br>');
+            document.getElementById('out-event').textContent = p.get('event');
+            document.getElementById('out-location').textContent = p.get('location');
+            document.getElementById('out-time').textContent = p.get('time');
+            document.getElementById('out-offer-id').textContent = p.get('offerId');
+            document.getElementById('out-offer-id-2').textContent = p.get('offerId');
+            document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
+            document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
+            document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+            updateIntro();
+        }
+    }
+
+    function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+    
+    function loadPreset() {
+        const key = document.getElementById('drink-presets').value;
+        if(presets[key]) {
+            document.getElementById('drink-title').value = presets[key].title;
+            document.getElementById('drink-size').value = presets[key].size;
+            document.getElementById('drink-desc').value = presets[key].desc;
+            document.getElementById('drink-price').value = presets[key].price;
+            document.getElementById('drink-pfand').value = presets[key].pfand;
+        }
+    }
+
+    function addStand() {
+        const name = document.getElementById('stand-name').value || "Stand " + (stands.length + 1);
+        const service = parseFloat(document.getElementById('stand-service').value) || 0;
+        stands.push({ id: Date.now(), name: name, service: service, items: [] });
+        updateStandList();
+        render();
+    }
+
+    function updateStandList() {
+        const sel = document.getElementById('drink-target');
+        sel.innerHTML = stands.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    function addDrink() {
+        const sId = document.getElementById('drink-target').value;
+        const stand = stands.find(s => s.id == sId);
+        if(!stand) return alert("Bitte erst einen Stand anlegen!");
+        
+        stand.items.push({ 
+            id: Date.now(), 
+            title: document.getElementById('drink-title').value,
+            size: document.getElementById('drink-size').value,
+            desc: document.getElementById('drink-desc').value, 
+            price: parseFloat(document.getElementById('drink-price').value) || 0,
+            pfand: parseFloat(document.getElementById('drink-pfand').value) || 0
+        });
+        render();
+    }
+
+    function removeDrink(sId, dId) {
+        const stand = stands.find(s => s.id == sId);
+        stand.items = stand.items.filter(d => d.id !== dId);
+        render();
+    }
+
+    function removeStand(id) {
+        stands = stands.filter(s => s.id !== id);
+        updateStandList();
+        render();
+    }
+
+    function render() {
+        const container = document.getElementById('tables-container');
+        container.innerHTML = "";
+        
+        stands.forEach(stand => {
+            let rows = stand.items.map(drink => {
+                const pfandText = drink.pfand > 0 ? `<br><span style="font-size:7.5pt; color:#666;">zzgl. ${drink.pfand.toFixed(2)} € Pfand</span>` : '';
+                return `<tr>
+                    <td class="col-drink">
+                        <div class="drink-title">${drink.title}${drink.size ? ' ' + drink.size : ''}</div>
+                        ${drink.desc ? `<div class="drink-desc">${drink.desc}</div>` : ''}
+                        <span class="delete-overlay no-print" onclick="removeDrink(${stand.id}, ${drink.id})">[Löschen]</span>
+                    </td>
+                    <td align="center" class="col-size">${drink.size}</td>
+                    <td align="right" class="col-price">${drink.price.toFixed(2)} €${pfandText}</td>
+                </tr>`;
+            }).join('');
+            
+            container.innerHTML += `
+                <table class="drink-table">
+                    <thead>
+                        <tr>
+                            <th colspan="3">${stand.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeStand(${stand.id})"> (Stand entfernen)</span></th>
+                        </tr>
+                        <tr style="background:#fff; color:#333; font-size:8pt;">
+                            <th class="col-drink">Bezeichnung</th>
+                            <th class="col-size">Größe</th>
+                            <th class="col-price">Preis brutto €</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <div class="drink-title">Servicegebühr inkl. Auf- und Abbau</div>
+                                <div class="drink-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Leihgebühr, Fahrtkosten und Reinigung</div>
+                            </td>
+                            <td align="right">${stand.service.toFixed(2)} €</td>
+                        </tr>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        });
+
+        // Mindestumsatz Info
+        const minUmsatz = parseFloat(document.getElementById('inp-min-umsatz').value) || 0;
+        const perPerson = parseFloat(document.getElementById('inp-per-person').value) || 0;
+        const minPersons = parseInt(document.getElementById('inp-min-persons').value) || 0;
+        
+        const minInfo = document.getElementById('mindestumsatz-info');
+        if(minUmsatz > 0 || perPerson > 0) {
+            let text = '<strong>MINDESTUMSATZ-Garantie für diese Veranstaltung:</strong><br>';
+            if(minPersons > 0) {
+                text += `Bei mind. ${minPersons} Gästen – `;
+            }
+            if(perPerson > 0) {
+                text += `${perPerson.toFixed(2)} € pro Person für Getränke`;
+            }
+            if(minUmsatz > 0) {
+                text += ` (Gesamt: ${minUmsatz.toFixed(2)} €)`;
+            }
+            text += ' zzgl. der Leihgebühren.<br><br>';
+            text += '<span style="color:#d32f2f;">BITTE HABEN SIE VERSTÄNDNIS DAFÜR, DASS WIR BEI EINER VERANSTALTUNG MIT SELBSTZAHLERN NICHT DAS ALLEINIGE RISIKO TRAGEN KÖNNEN UND MÖCHTEN (WETTER, ...)</span>';
+            minInfo.innerHTML = text;
+        } else {
+            minInfo.innerHTML = '';
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
