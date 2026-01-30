@@ -46,7 +46,7 @@
 
         .offer-header-small { font-size: 9pt; color: #555; margin-bottom: 5mm; }
         
-        /* TABELLE OPTIMIERUNG */
+        /* EINHEITLICHES TABELLENDESIGN */
         .mindest-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .mindest-table th, .mindest-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
@@ -55,10 +55,18 @@
         .col-qty { width: 12%; }
         .col-money { width: 16.5%; }
 
-        .mindest-table th { color: var(--accent-orange); font-weight: 700; font-size: 11pt; text-align: center; }
-        .product-title { font-weight: bold; color: var(--primary-color); }
+        .mindest-table th { 
+            background: var(--accent-orange); 
+            color: white; 
+            font-weight: 700; 
+            font-size: 10pt; 
+            text-align: center; 
+        }
+        
+        .product-title { font-weight: bold; color: var(--primary-color); font-size: 9.5pt; }
         .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
-        .vegan { color: #2e7d32; font-weight: bold; }
+        .vegan { color: #2e7d32; font-weight: bold; font-size: 9pt; }
+        .totals-row { font-weight: bold; background: #fdfaf9; }
 
         /* Footer */
         .document-footer {
@@ -112,7 +120,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
-    <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+    <button class="btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
@@ -198,48 +206,69 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
         const html = `
             <tr>
-                <td><strong>Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</strong></td>
+                <td>
+                    <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
+                    <div class="product-desc">Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
+                </td>
                 <td align="center">1</td>
                 <td align="right">${base.toFixed(2)}</td>
                 <td align="right">${base.toFixed(2)}</td>
             </tr>
             <tr>
-                <td><strong>Servicegebühr für jede weitere Stunde / Personal</strong></td>
+                <td>
+                    <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
+                </td>
                 <td></td>
                 <td align="right">${extra.toFixed(2)}</td>
                 <td></td>
             </tr>
             <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
             <tr>
-                <td><div class="product-title">Pastrami Sandwich Sally</div><div class="product-desc">Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar</div></td>
+                <td>
+                    <div class="product-title">Pastrami Sandwich Sally</div>
+                    <div class="product-desc">Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar</div>
+                </td>
                 <td></td><td></td><td></td>
             </tr>
             <tr>
-                <td><div class="product-title">Pastrami Bowl</div><div class="product-desc">Gegrillte Pastrami auf Salat mit mildem Senf, Gurken-Schnitzen, Cocktailsoße, Röstzwiebeln, Cheddar, Spiegelei und Brotecken</div></td>
+                <td>
+                    <div class="product-title">Pastrami Bowl</div>
+                    <div class="product-desc">Gegrillte Pastrami auf Salat mit mildem Senf, Gurken-Schnitzen, Cocktailsoße, Röstzwiebeln, Cheddar, Spiegelei und Brotecken</div>
+                </td>
                 <td></td><td></td><td></td>
             </tr>
             <tr>
-                <td><div class="product-title">Käsespätzle mit Original Bergkäse-Mischung</div><div class="product-desc">mit Röstzwiebeln, frischen Kräutern an Salatbouquet</div></td>
+                <td>
+                    <div class="product-title">Käsespätzle mit Original Bergkäse-Mischung</div>
+                    <div class="product-desc">mit Röstzwiebeln, frischen Kräutern an Salatbouquet</div>
+                </td>
                 <td></td><td></td><td></td>
             </tr>
             <tr>
-                <td><div class="product-title">Bunter Pflücksalat - vegetarisch -</div><div class="product-desc">mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken</div></td>
+                <td>
+                    <div class="product-title">Bunter Pflücksalat - vegetarisch -</div>
+                    <div class="product-desc">mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken</div>
+                </td>
                 <td></td><td></td><td></td>
             </tr>
             <tr>
-                <td><div class="product-title"><span class="vegan">VEGAN</span></div><div class="product-desc"><strong>Veganes Linsen-Curry</strong> (pikant) mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis</div></td>
+                <td>
+                    <div class="vegan">VEGAN</div>
+                    <div class="product-title">Veganes Linsen-Curry (pikant)</div>
+                    <div class="product-desc">mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis</div>
+                </td>
                 <td></td><td></td><td></td>
             </tr>
             <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
-            <tr style="font-weight:bold; background:#fdfaf9;">
-                <td>Mindestabnahme-Menge **</td>
+            <tr class="totals-row">
+                <td><strong>Mindestabnahme-Menge **</strong></td>
                 <td align="center">${qty}</td>
                 <td align="right">${price.toFixed(2)}</td>
                 <td align="right">${(qty * price).toFixed(2)}</td>
             </tr>
             <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
             <tr style="font-weight:bold; font-size:10pt;">
-                <td colspan="3">Summe aller Positionen</td>
+                <td colspan="3"><strong>Summe aller Positionen</strong></td>
                 <td align="right">${(base + (qty * price)).toFixed(2)} €</td>
             </tr>
             <tr>
