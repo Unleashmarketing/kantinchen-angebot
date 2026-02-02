@@ -184,6 +184,17 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Mindestanzahl Personen</label>
             <input type="number" id="inp-min-persons" value="0" oninput="render()">
         </div>
+        <div class="form-group">
+            <label>Mindestumsatz-Text</label>
+            <textarea id="edit-mindestumsatz" rows="12" oninput="render()">MINDESTUMSATZ-Garantie für diese Veranstaltung:
+
+Für die Gläser stellen wir eine Spül- und Polierstation.
+Wir werden eine separate Pfandrückgabestation aufstellen.
+
+BITTE HABEN SIE VERSTÄNDNIS DAFÜR, DASS WIR BEI EINER VERANSTALTUNG MIT SELBSTZAHLERN NICHT DAS ALLEINIGE RISIKO TRAGEN KÖNNEN UND MÖCHTEN (WETTER, ...)
+
+SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜSSTEN EVTL. DIE DIFFERENZ TRAGEN, WENN DER MINDESTUMSATZ NICHT ERREICHT WURDE, WAS ABER IN DER REGEL KEIN THEMA IST.</textarea>
+        </div>
     </div>
 
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
@@ -221,7 +232,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
         <div id="tables-container"></div>
 
-        <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt;"></div>
+        <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt; white-space: pre-wrap;"></div>
 
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
@@ -232,7 +243,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const presets = {
         limo: { title: "Laute Limo", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Fruchtig in der Zubereitung, weniger süß, mit weniger Kohlensäure. Sorten: Zitrone, Grapefrucht und Cola-Orange" },
         wasser: { title: "Mineralwasser classic / still", size: "0,5l", price: 3.50, pfand: 1.00, desc: "" },
@@ -371,10 +382,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         const minUmsatz = parseFloat(document.getElementById('inp-min-umsatz').value) || 0;
         const perPerson = parseFloat(document.getElementById('inp-per-person').value) || 0;
         const minPersons = parseInt(document.getElementById('inp-min-persons').value) || 0;
+        const customText = document.getElementById('edit-mindestumsatz').value;
         
         const minInfo = document.getElementById('mindestumsatz-info');
         if(minUmsatz > 0 || perPerson > 0) {
-            let text = '<strong>MINDESTUMSATZ-Garantie für diese Veranstaltung:</strong><br>';
+            let text = '<strong>' + customText.split('\n')[0] + '</strong><br><br>';
             if(minPersons > 0) {
                 text += `Bei mind. ${minPersons} Gästen – `;
             }
@@ -385,7 +397,17 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 text += ` (Gesamt: ${minUmsatz.toFixed(2)} €)`;
             }
             text += ' zzgl. der Leihgebühren.<br><br>';
-            text += '<span style="color:#d32f2f;">BITTE HABEN SIE VERSTÄNDNIS DAFÜR, DASS WIR BEI EINER VERANSTALTUNG MIT SELBSTZAHLERN NICHT DAS ALLEINIGE RISIKO TRAGEN KÖNNEN UND MÖCHTEN (WETTER, ...)</span>';
+            
+            // Restlichen Text hinzufügen
+            const lines = customText.split('\n');
+            for(let i = 1; i < lines.length; i++) {
+                if(lines[i].trim()) {
+                    text += lines[i] + '<br>';
+                } else {
+                    text += '<br>';
+                }
+            }
+            
             minInfo.innerHTML = text;
         } else {
             minInfo.innerHTML = '';
