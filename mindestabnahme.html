@@ -59,11 +59,17 @@
         .mindest-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .mindest-table th, .mindest-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Spaltenbreiten für Truck-Tabellen */
-        .col-pos { width: 55%; } 
-        .col-qty { width: 15%; }
-        .col-price-single { width: 15%; }
-        .col-price-total { width: 15%; }
+        /* Spaltenbreiten für Truck-Tabellen (wie bei Getränke) */
+        .truck-table .col-pos { width: 60%; } 
+        .truck-table .col-qty { width: 13%; }
+        .truck-table .col-price-single { width: 13%; }
+        .truck-table .col-price-total { width: 14%; }
+
+        /* Spaltenbreiten für Mindestabnahme-Tabelle */
+        .mindest-summary .col-pos { width: 55%; } 
+        .mindest-summary .col-qty { width: 15%; }
+        .mindest-summary .col-price-single { width: 15%; }
+        .mindest-summary .col-price-total { width: 15%; }
 
         .mindest-table th { 
             background: var(--accent-orange); 
@@ -344,7 +350,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             }).join('');
             
             container.innerHTML += `
-                <table class="mindest-table">
+                <table class="mindest-table truck-table">
                     <thead>
                         <tr>
                             <th colspan="4">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
@@ -387,7 +393,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         });
         
         container.innerHTML += `
-            <table class="mindest-table">
+            <table class="mindest-table mindest-summary">
                 <thead>
                     <tr>
                         <th colspan="4">MINDESTABNAHME</th>
@@ -401,7 +407,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 </thead>
                 <tbody>
                     <tr class="totals-row">
-                        <td class="col-pos"><strong>Mindestabnahme-Menge **</strong></td>
+                        <td class="col-pos"><strong>Mindestabnahme-Menge</strong></td>
                         <td align="center" class="col-qty">${qty}</td>
                         <td align="right" class="col-price-single">${price.toFixed(2)} €</td>
                         <td align="right" class="col-price-total">${minTotal.toFixed(2)} €</td>
@@ -412,7 +418,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                         <td align="right">${grandTotal.toFixed(2)} €</td>
                     </tr>
                     <tr>
-                        <td colspan="4" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
+                        <td colspan="4" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td>
                     </tr>
                 </tbody>
             </table>
