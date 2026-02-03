@@ -59,10 +59,11 @@
         .mindest-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .mindest-table th, .mindest-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Spaltenbreiten */
-        .col-pos { width: 70%; } 
+        /* Spaltenbreiten für Truck-Tabellen */
+        .col-pos { width: 55%; } 
         .col-qty { width: 15%; }
-        .col-money { width: 15%; }
+        .col-price-single { width: 15%; }
+        .col-price-total { width: 15%; }
 
         .mindest-table th { 
             background: var(--accent-orange); 
@@ -116,6 +117,10 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Truck Name</label>
             <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
         </div>
+        <div class="form-group">
+            <label>Servicegebühr (€ Brutto)</label>
+            <input type="number" id="truck-service" value="450.00" step="0.01">
+        </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
         
         <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
@@ -153,10 +158,18 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Beschreibung</label>
             <textarea id="food-desc" rows="3"></textarea>
         </div>
+        <div class="form-group">
+            <label>Portionen (optional)</label>
+            <input type="number" id="food-qty" placeholder="z.B. 50">
+        </div>
+        <div class="form-group">
+            <label>Einzelpreis (€ Brutto, optional)</label>
+            <input type="number" id="food-price" step="0.01" placeholder="z.B. 10.00">
+        </div>
         <button class="btn btn-food" onclick="addFood()">+ Speise hinzufügen</button>
     </div>
 
-    <h2>3. Preise & Gebühren</h2>
+    <h2>3. Mindestabnahme</h2>
     <div class="section-box">
         <div class="form-group">
             <label>Mindestabnahme Menge</label>
@@ -165,14 +178,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         <div class="form-group">
             <label>Preis pro Portion (€ Brutto)</label>
             <input type="number" id="inp-price" value="10.00" step="0.01" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Service Grundpreis (€ Brutto)</label>
-            <input type="number" id="inp-service-base" value="450.00" step="0.01" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Zusatzstunde/Pers. (€ Brutto)</label>
-            <input type="number" id="inp-service-extra" value="35.00" step="0.01" oninput="render()">
         </div>
     </div>
 
@@ -254,7 +259,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
-    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('inp-intro').value; }
 
     function loadPreset() {
         const key = document.getElementById('food-presets').value;
@@ -266,7 +271,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
     function addTruck() {
         const name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
-        trucks.push({ id: Date.now(), name: name.toUpperCase(), items: [] });
+        const service = parseFloat(document.getElementById('truck-service').value) || 0;
+        trucks.push({ id: Date.now(), name: name.toUpperCase(), service: service, items: [] });
         updateTruckList();
         render();
     }
@@ -284,8 +290,18 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         truck.items.push({ 
             id: Date.now(), 
             title: document.getElementById('food-title').value, 
-            desc: document.getElementById('food-desc').value
+            desc: document.getElementById('food-desc').value,
+            qty: parseInt(document.getElementById('food-qty').value) || 0,
+            price: parseFloat(document.getElementById('food-price').value) || 0
         });
+        
+        // Felder leeren
+        document.getElementById('food-title').value = '';
+        document.getElementById('food-desc').value = '';
+        document.getElementById('food-qty').value = '';
+        document.getElementById('food-price').value = '';
+        document.getElementById('food-presets').value = '';
+        
         render();
     }
 
@@ -304,53 +320,26 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function render() {
         const qty = parseInt(document.getElementById('inp-qty').value) || 0;
         const price = parseFloat(document.getElementById('inp-price').value) || 0;
-        const base = parseFloat(document.getElementById('inp-service-base').value) || 0;
-        const extra = parseFloat(document.getElementById('inp-service-extra').value) || 0;
         
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
         
-        // Service-Tabelle
-        container.innerHTML += `
-            <table class="mindest-table">
-                <thead>
-                    <tr>
-                        <th class="col-pos">Bezeichnung</th>
-                        <th class="col-qty">Portionen</th>
-                        <th class="col-money">Preis brutto €</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
-                            <div class="product-desc">Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
-                        </td>
-                        <td align="center">1</td>
-                        <td align="right">${base.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
-                        </td>
-                        <td></td>
-                        <td align="right">${extra.toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            </table>
-        `;
-        
-        // Truck-Tabellen mit Speisen (ohne Preise)
+        // Truck-Tabellen mit Servicegebühr und Speisen
         trucks.forEach(truck => {
             let rows = truck.items.map(food => {
+                const qtyDisplay = food.qty > 0 ? food.qty : '';
+                const priceDisplay = food.price > 0 ? food.price.toFixed(2) + ' €' : '';
+                const totalDisplay = (food.qty > 0 && food.price > 0) ? (food.qty * food.price).toFixed(2) + ' €' : '';
+                
                 return `<tr>
-                    <td>
+                    <td class="col-pos">
                         <div class="product-title">${food.title}</div>
-                        <div class="product-desc">${food.desc}</div>
+                        ${food.desc ? `<div class="product-desc">${food.desc}</div>` : ''}
                         <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
                     </td>
-                    <td></td>
-                    <td></td>
+                    <td align="center" class="col-qty">${qtyDisplay}</td>
+                    <td align="right" class="col-price-single">${priceDisplay}</td>
+                    <td align="right" class="col-price-total">${totalDisplay}</td>
                 </tr>`;
             }).join('');
             
@@ -358,32 +347,72 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 <table class="mindest-table">
                     <thead>
                         <tr>
-                            <th colspan="3">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
+                            <th colspan="4">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
+                        </tr>
+                        <tr style="background:#fff; color:#333; font-size:8pt;">
+                            <th class="col-pos">Bezeichnung</th>
+                            <th class="col-qty">Portionen</th>
+                            <th class="col-price-single">Einzelpreis brutto</th>
+                            <th class="col-price-total">Gesamtpreis brutto</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td class="col-pos">
+                                <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
+                                <div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
+                            </td>
+                            <td align="center" class="col-qty">1</td>
+                            <td align="right" class="col-price-single">${truck.service.toFixed(2)} €</td>
+                            <td align="right" class="col-price-total">${truck.service.toFixed(2)} €</td>
+                        </tr>
                         ${rows}
                     </tbody>
                 </table>
             `;
         });
         
-        // Gesamt-Tabelle
+        // Mindestabnahme-Tabelle
+        const minTotal = qty * price;
+        let grandTotal = minTotal;
+        
+        // Servicegebühren aller Trucks addieren
+        trucks.forEach(truck => {
+            grandTotal += truck.service;
+            truck.items.forEach(food => {
+                if(food.qty > 0 && food.price > 0) {
+                    grandTotal += food.qty * food.price;
+                }
+            });
+        });
+        
         container.innerHTML += `
             <table class="mindest-table">
+                <thead>
+                    <tr>
+                        <th colspan="4">MINDESTABNAHME</th>
+                    </tr>
+                    <tr style="background:#fff; color:#333; font-size:8pt;">
+                        <th class="col-pos">Bezeichnung</th>
+                        <th class="col-qty">Portionen</th>
+                        <th class="col-price-single">Einzelpreis brutto</th>
+                        <th class="col-price-total">Gesamtpreis brutto</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr class="totals-row">
-                        <td><strong>Mindestabnahme-Menge **</strong></td>
-                        <td align="center">${qty}</td>
-                        <td align="right">${price.toFixed(2)}</td>
+                        <td class="col-pos"><strong>Mindestabnahme-Menge **</strong></td>
+                        <td align="center" class="col-qty">${qty}</td>
+                        <td align="right" class="col-price-single">${price.toFixed(2)} €</td>
+                        <td align="right" class="col-price-total">${minTotal.toFixed(2)} €</td>
                     </tr>
-                    <tr><td colspan="3" style="border:none; height:10px;"></td></tr>
+                    <tr><td colspan="4" style="border:none; height:10px;"></td></tr>
                     <tr style="font-weight:bold; font-size:10pt;">
-                        <td colspan="2"><strong>Summe aller Positionen</strong></td>
-                        <td align="right">${(base + (qty * price)).toFixed(2)} €</td>
+                        <td colspan="3"><strong>Summe aller Positionen</strong></td>
+                        <td align="right">${grandTotal.toFixed(2)} €</td>
                     </tr>
                     <tr>
-                        <td colspan="3" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
+                        <td colspan="4" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
                     </tr>
                 </tbody>
             </table>
