@@ -115,6 +115,10 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Servicegebühr (€ Brutto)</label>
             <input type="number" id="truck-service" value="450.00" step="0.01">
         </div>
+        <div class="form-group">
+            <label>Zusatzstunde/Pers. (€ Brutto)</label>
+            <input type="number" id="truck-extra" value="35.00" step="0.01">
+        </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
         
         <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
@@ -266,7 +270,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function addTruck() {
         const name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
         const service = parseFloat(document.getElementById('truck-service').value) || 0;
-        trucks.push({ id: Date.now(), name: name.toUpperCase(), service: service, items: [] });
+        const extra = parseFloat(document.getElementById('truck-extra').value) || 0;
+        trucks.push({ id: Date.now(), name: name.toUpperCase(), service: service, extra: extra, items: [] });
         updateTruckList();
         render();
     }
@@ -365,6 +370,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                             <td align="center">1</td>
                             <td align="right">${truck.service.toFixed(2)} €</td>
                             <td align="right">${truck.service.toFixed(2)} €</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
+                            </td>
+                            <td align="center"></td>
+                            <td align="right">${truck.extra.toFixed(2)} €</td>
+                            <td align="right"></td>
                         </tr>
                         ${rows}
                     </tbody>
