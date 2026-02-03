@@ -67,32 +67,6 @@
             text-align: center; 
         }
         
-        /* Spaltenbreiten für Truck-Tabellen */
-        .truck-table th:nth-child(1),
-        .truck-table td:nth-child(1) { width: 50%; }
-        
-        .truck-table th:nth-child(2),
-        .truck-table td:nth-child(2) { width: 16%; }
-        
-        .truck-table th:nth-child(3),
-        .truck-table td:nth-child(3) { width: 17%; }
-        
-        .truck-table th:nth-child(4),
-        .truck-table td:nth-child(4) { width: 17%; }
-
-        /* Spaltenbreiten für Mindestabnahme-Tabelle */
-        .mindest-summary th:nth-child(1),
-        .mindest-summary td:nth-child(1) { width: 50%; }
-        
-        .mindest-summary th:nth-child(2),
-        .mindest-summary td:nth-child(2) { width: 16%; }
-        
-        .mindest-summary th:nth-child(3),
-        .mindest-summary td:nth-child(3) { width: 17%; }
-        
-        .mindest-summary th:nth-child(4),
-        .mindest-summary td:nth-child(4) { width: 17%; }
-        
         .product-title { font-weight: bold; color: var(--primary-color); font-size: 9.5pt; }
         .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
         .vegan { color: #2e7d32; font-weight: bold; font-size: 9pt; }
@@ -364,7 +338,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             }).join('');
             
             container.innerHTML += `
-                <table class="mindest-table truck-table">
+                <table class="mindest-table">
+                    <colgroup>
+                        <col style="width: 50%;">
+                        <col style="width: 16%;">
+                        <col style="width: 17%;">
+                        <col style="width: 17%;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th colspan="4">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
@@ -407,7 +387,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         });
         
         container.innerHTML += `
-            <table class="mindest-table mindest-summary">
+            <table class="mindest-table">
+                <colgroup>
+                    <col style="width: 50%;">
+                    <col style="width: 16%;">
+                    <col style="width: 17%;">
+                    <col style="width: 17%;">
+                </colgroup>
                 <thead>
                     <tr>
                         <th colspan="4">MINDESTABNAHME</th>
