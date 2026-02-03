@@ -59,11 +59,6 @@
         .person-table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; font-size: 8.5pt; table-layout: fixed; }
         .person-table th, .person-table td { border: 1px solid #000; padding: 8px; vertical-align: top; overflow-wrap: break-word; }
         
-        /* Spaltenbreiten */
-        .col-pos { width: 70%; } 
-        .col-qty { width: 15%; }
-        .col-money { width: 15%; }
-
         .person-table th { 
             background: var(--accent-orange); 
             color: white; 
@@ -77,6 +72,8 @@
         .vegan { color: #2e7d32; font-weight: bold; font-size: 9pt; }
         .totals-row { font-weight: bold; background: #fdfaf9; }
         .delete-overlay { color: red; cursor: pointer; font-weight: bold; font-size: 14px; margin-left: 10px; }
+
+        .info-box { margin-top: 10mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt; line-height: 1.6; }
 
         /* Footer */
         .document-footer {
@@ -174,6 +171,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Zusatzstunde/Pers. (€ Brutto)</label>
             <input type="number" id="inp-service-extra" value="35.00" step="0.01" oninput="render()">
         </div>
+        <div class="form-group">
+            <label>Essens-Pauschale Band/Helfer (€)</label>
+            <input type="number" id="inp-pauschale" value="15.00" step="0.01" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Mindestpersonen (Vollzahler)</label>
+            <input type="number" id="inp-min-persons" value="50" oninput="render()">
+        </div>
     </div>
 
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
@@ -254,7 +259,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
-    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('inp-intro').value; }
     
     function loadPreset() {
         const key = document.getElementById('food-presets').value;
@@ -306,18 +311,25 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         const pricePerPerson = parseFloat(document.getElementById('inp-price-per-person').value) || 0;
         const base = parseFloat(document.getElementById('inp-service-base').value) || 0;
         const extra = parseFloat(document.getElementById('inp-service-extra').value) || 0;
+        const pauschale = parseFloat(document.getElementById('inp-pauschale').value) || 0;
+        const minPersons = parseInt(document.getElementById('inp-min-persons').value) || 0;
         
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
         
-        // Service-Tabelle
+        // Einheitliche Tabelle mit colgroup
         container.innerHTML += `
             <table class="person-table">
+                <colgroup>
+                    <col style="width: 70%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th class="col-pos">Bezeichnung</th>
-                        <th class="col-qty">Personen</th>
-                        <th class="col-money">Preis brutto €</th>
+                        <th>Bezeichnung</th>
+                        <th>Personen</th>
+                        <th>Preis brutto €</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -336,42 +348,35 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                         <td></td>
                         <td align="right">${extra.toFixed(2)}</td>
                     </tr>
-                </tbody>
-            </table>
         `;
         
-        // Truck-Tabellen mit Speisen (ohne Preise)
+        // Truck-Speisen hinzufügen
         trucks.forEach(truck => {
-            let rows = truck.items.map(food => {
-                return `<tr>
-                    <td>
-                        <div class="product-title">${food.title}</div>
-                        <div class="product-desc">${food.desc}</div>
-                        <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
-                    </td>
-                    <td></td>
-                    <td></td>
-                </tr>`;
-            }).join('');
-            
             container.innerHTML += `
-                <table class="person-table">
-                    <thead>
-                        <tr>
-                            <th colspan="3">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
+                <tr>
+                    <td colspan="3" style="background: var(--accent-orange); color: white; font-weight: bold; text-align: center;">
+                        ${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span>
+                    </td>
+                </tr>
             `;
+            
+            truck.items.forEach(food => {
+                container.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="product-title">${food.title}</div>
+                            <div class="product-desc">${food.desc}</div>
+                            <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                `;
+            });
         });
         
-        // Gesamt-Tabelle
+        // Gesamt und Hinweis
         container.innerHTML += `
-            <table class="person-table">
-                <tbody>
                     <tr class="totals-row">
                         <td><strong>Pro-Person-Preis (${persons} Personen)</strong></td>
                         <td align="center">${persons}</td>
@@ -383,10 +388,17 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                         <td align="right">${(base + (persons * pricePerPerson)).toFixed(2)} €</td>
                     </tr>
                     <tr>
-                        <td colspan="3" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
+                        <td colspan="3" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td>
                     </tr>
                 </tbody>
             </table>
+            
+            <div class="info-box">
+                <strong>WICHTIGE HINWEISE:</strong><br><br>
+                Ich bitte Sie, bei der Angabe der Personenzahl ggfs. die Band / Musiker, Bedienung, Helfer, ... mit zu berücksichtigen.<br><br>
+                Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von ${pauschale.toFixed(2)} € pro Person.<br><br>
+                Bitte beachten Sie, dass wir für dieses Event aus Kalkulationsgründen mindestens ${minPersons} Personen (Vollzahler) abrechnen müssen. Sollten es z.B. ${minPersons - 2} Personen sein, müssen trotz allem ${minPersons} Personen abgerechnet werden.
+            </div>
         `;
     }
 
