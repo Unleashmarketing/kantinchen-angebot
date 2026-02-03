@@ -67,11 +67,6 @@
             text-align: center; 
         }
         
-        /* Spaltenbreiten */
-        .col-pos { width: 40%; } 
-        .col-qty { width: 10%; }
-        .col-money { width: 12.5%; }
-
         .product-title { font-weight: bold; color: var(--primary-color); font-size: 9.5pt; }
         .product-desc { font-size: 8.5pt; color: #333; margin-top: 2px; }
         .totals-row { font-weight: bold; background: #fdfaf9; }
@@ -296,32 +291,40 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 sN += tN; 
                 sB += tB;
                 return `<tr>
-                    <td class="col-pos">
+                    <td>
                         <div class="product-title">${f.title}</div>
                         <div class="product-desc">${f.desc}</div>
                         <span class="delete-overlay no-print" onclick="removeFood(${t.id}, ${f.id})">[Löschen]</span>
                     </td>
-                    <td align="center" class="col-qty">${f.qty}</td>
-                    <td align="right" class="col-money">${f.ne.toFixed(2)}</td>
-                    <td align="right" class="col-money">${f.br.toFixed(2)}</td>
-                    <td align="right" class="col-money">${tN.toFixed(2)}</td>
-                    <td align="right" class="col-money">${tB.toFixed(2)}</td>
+                    <td align="center">${f.qty}</td>
+                    <td align="right">${f.ne.toFixed(2)}</td>
+                    <td align="right">${f.br.toFixed(2)}</td>
+                    <td align="right">${tN.toFixed(2)}</td>
+                    <td align="right">${tB.toFixed(2)}</td>
                 </tr>`;
             }).join('');
             
             container.innerHTML += `
                 <table class="truck-table">
+                    <colgroup>
+                        <col style="width: 40%;">
+                        <col style="width: 10%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th colspan="6">${t.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${t.id})"> (Truck entfernen)</span></th>
                         </tr>
                         <tr style="background:#fff; color:#333; font-size:8pt;">
-                            <th class="col-pos">Bezeichnung</th>
-                            <th class="col-qty">Portionen</th>
-                            <th class="col-money">Einzel € netto</th>
-                            <th class="col-money">Einzel € brutto</th>
-                            <th class="col-money">Gesamt € netto</th>
-                            <th class="col-money">Gesamt € brutto</th>
+                            <th>Bezeichnung</th>
+                            <th>Portionen</th>
+                            <th>Einzel € netto</th>
+                            <th>Einzel € brutto</th>
+                            <th>Gesamt € netto</th>
+                            <th>Gesamt € brutto</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -347,6 +350,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             });
             container.innerHTML += `
                 <table class="truck-table">
+                    <colgroup>
+                        <col style="width: 40%;">
+                        <col style="width: 10%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                        <col style="width: 12.5%;">
+                    </colgroup>
                     <tbody>
                         <tr style="font-weight:bold; font-size:10pt; background:#fdfaf9;">
                             <td colspan="4"><strong>GESAMTSUMME ALLER TRUCKS</strong></td>
@@ -354,7 +365,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                             <td align="right"><strong>${totalB.toFixed(2)} €</strong></td>
                         </tr>
                         <tr>
-                            <td colspan="6" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise incl. der gesetzl. Umsatzsteuer</td>
+                            <td colspan="6" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td>
                         </tr>
                     </tbody>
                 </table>
