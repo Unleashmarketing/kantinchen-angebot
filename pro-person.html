@@ -113,6 +113,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Truck Name</label>
             <input type="text" id="truck-name" placeholder="z.B. TRUCK 1">
         </div>
+        <div class="form-group">
+            <label>Servicegebühr (€ Brutto)</label>
+            <input type="number" id="truck-service" value="450.00" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Zusatzstunde/Pers. (€ Brutto)</label>
+            <input type="number" id="truck-extra" value="35.00" step="0.01">
+        </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
         
         <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
@@ -162,14 +170,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         <div class="form-group">
             <label>Preis pro Person (€ Brutto)</label>
             <input type="number" id="inp-price-per-person" value="15.00" step="0.01" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Service Grundpreis (€ Brutto)</label>
-            <input type="number" id="inp-service-base" value="450.00" step="0.01" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Zusatzstunde/Pers. (€ Brutto)</label>
-            <input type="number" id="inp-service-extra" value="35.00" step="0.01" oninput="render()">
         </div>
         <div class="form-group">
             <label>Essens-Pauschale Band/Helfer (€)</label>
@@ -271,7 +271,9 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
     function addTruck() {
         const name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
-        trucks.push({ id: Date.now(), name: name.toUpperCase(), items: [] });
+        const service = parseFloat(document.getElementById('truck-service').value) || 0;
+        const extra = parseFloat(document.getElementById('truck-extra').value) || 0;
+        trucks.push({ id: Date.now(), name: name.toUpperCase(), service: service, extra: extra, items: [] });
         updateTruckList();
         render();
     }
@@ -309,15 +311,69 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function render() {
         const persons = parseInt(document.getElementById('inp-persons').value) || 0;
         const pricePerPerson = parseFloat(document.getElementById('inp-price-per-person').value) || 0;
-        const base = parseFloat(document.getElementById('inp-service-base').value) || 0;
-        const extra = parseFloat(document.getElementById('inp-service-extra').value) || 0;
         const pauschale = parseFloat(document.getElementById('inp-pauschale').value) || 0;
         const minPersons = parseInt(document.getElementById('inp-min-persons').value) || 0;
         
         const container = document.getElementById('tables-container');
         container.innerHTML = "";
         
-        // Einheitliche Tabelle mit colgroup
+        // Truck-Tabellen mit Servicegebühr und Speisen
+        trucks.forEach(truck => {
+            let rows = truck.items.map(food => {
+                return `<tr>
+                    <td>
+                        <div class="product-title">${food.title}</div>
+                        ${food.desc ? `<div class="product-desc">${food.desc}</div>` : ''}
+                        <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>`;
+            }).join('');
+            
+            container.innerHTML += `
+                <table class="person-table">
+                    <colgroup>
+                        <col style="width: 70%;">
+                        <col style="width: 15%;">
+                        <col style="width: 15%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th colspan="3">${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span></th>
+                        </tr>
+                        <tr style="background:#fff; color:#333; font-size:8pt;">
+                            <th>Bezeichnung</th>
+                            <th>Personen</th>
+                            <th>Preis brutto €</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
+                                <div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
+                            </td>
+                            <td align="center">1</td>
+                            <td align="right">${truck.service.toFixed(2)} €</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
+                            </td>
+                            <td align="center"></td>
+                            <td align="right">${truck.extra.toFixed(2)} €</td>
+                        </tr>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        });
+        
+        // Gesamt-Tabelle
+        let totalService = 0;
+        trucks.forEach(t => totalService += t.service);
+        
         container.innerHTML += `
             <table class="person-table">
                 <colgroup>
@@ -325,67 +381,16 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     <col style="width: 15%;">
                     <col style="width: 15%;">
                 </colgroup>
-                <thead>
-                    <tr>
-                        <th>Bezeichnung</th>
-                        <th>Personen</th>
-                        <th>Preis brutto €</th>
-                    </tr>
-                </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>
-                            <div class="product-desc">Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div>
-                        </td>
-                        <td align="center">1</td>
-                        <td align="right">${base.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div>
-                        </td>
-                        <td></td>
-                        <td align="right">${extra.toFixed(2)}</td>
-                    </tr>
-        `;
-        
-        // Truck-Speisen hinzufügen
-        trucks.forEach(truck => {
-            container.innerHTML += `
-                <tr>
-                    <td colspan="3" style="background: var(--accent-orange); color: white; font-weight: bold; text-align: center;">
-                        ${truck.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeTruck(${truck.id})"> (Truck entfernen)</span>
-                    </td>
-                </tr>
-            `;
-            
-            truck.items.forEach(food => {
-                container.innerHTML += `
-                    <tr>
-                        <td>
-                            <div class="product-title">${food.title}</div>
-                            <div class="product-desc">${food.desc}</div>
-                            <span class="delete-overlay no-print" onclick="removeFood(${truck.id}, ${food.id})">[Löschen]</span>
-                        </td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                `;
-            });
-        });
-        
-        // Gesamt und Hinweis
-        container.innerHTML += `
                     <tr class="totals-row">
                         <td><strong>Pro-Person-Preis (${persons} Personen)</strong></td>
                         <td align="center">${persons}</td>
-                        <td align="right">${pricePerPerson.toFixed(2)}</td>
+                        <td align="right">${pricePerPerson.toFixed(2)} €</td>
                     </tr>
                     <tr><td colspan="3" style="border:none; height:10px;"></td></tr>
                     <tr style="font-weight:bold; font-size:10pt;">
                         <td colspan="2"><strong>Summe aller Positionen</strong></td>
-                        <td align="right">${(base + (persons * pricePerPerson)).toFixed(2)} €</td>
+                        <td align="right">${(totalService + (persons * pricePerPerson)).toFixed(2)} €</td>
                     </tr>
                     <tr>
                         <td colspan="3" style="border:none; font-size:7.5pt; color:#666; padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td>
