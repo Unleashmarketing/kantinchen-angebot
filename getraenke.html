@@ -13,7 +13,6 @@
 
         body { font-family: 'Open Sans', sans-serif; background: #95a5a6; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Entfernt Browser-Kopf- und Fußzeilen beim Drucken */
         @page { 
             margin: 0; 
             size: A4;
@@ -38,9 +37,10 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
+            flex-shrink: 0; overflow: hidden;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -67,7 +67,6 @@
             text-align: center; 
         }
         
-        /* Spaltenbreiten */
         .col-drink { width: 60%; } 
         .col-size { width: 15%; }
         .col-price { width: 25%; }
@@ -84,14 +83,12 @@
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
         .footer-col { line-height: 1.4; }
-        .page-inner-content { }
 
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
-            .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; page-break-inside: avoid; }
-            #tables-container, #mindestumsatz-info { display: none !important; }
-            body { background: white; overflow: visible !important; height: auto !important; display: block !important; }
+            .preview-panel { padding: 0; background: white; overflow: visible; display: block; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
+            body { background: white; display: block; height: auto; overflow: visible; }
         }
     </style>
 </head>
@@ -203,6 +200,7 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 </div>
 
 <div class="preview-panel">
+    <!-- SEITE 1: Anschreiben (statisch) -->
     <div class="a4-page">
         <img src="LK_Logo_ohne_black.png" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
@@ -227,10 +225,8 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         </div>
     </div>
 
+    <!-- SEITE 2+: dynamisch erzeugte Angebots-Seiten -->
     <div id="offer-pages"></div>
-    <!-- Hidden container for render() to build into before distribution -->
-    <div id="tables-container" style="position:absolute;left:-9999px;top:0;width:170mm;visibility:hidden;"></div>
-    <div id="mindestumsatz-info" style="position:absolute;left:-9999px;top:0;width:170mm;visibility:hidden;"></div>
 </div>
 
 <script>
@@ -253,6 +249,13 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
     let stands = [];
 
+    const FOOTER_HTML = '<div class="document-footer">' +
+        '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
+        '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
+        '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
+        '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
+    '</div>';
+
     function init() {
         const p = new URLSearchParams(window.location.search);
         if(p.get('recipient')) {
@@ -261,7 +264,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
             document.getElementById('out-location').textContent = p.get('location');
             document.getElementById('out-time').textContent = p.get('time');
             document.getElementById('out-offer-id').textContent = p.get('offerId');
-            document.getElementById('out-offer-id-2').textContent = p.get('offerId');
             document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
             document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
             document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -300,7 +302,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         const sId = document.getElementById('drink-target').value;
         const stand = stands.find(s => s.id == sId);
         if(!stand) return alert("Bitte erst einen Stand anlegen!");
-        
         stand.items.push({ 
             id: Date.now(), 
             title: document.getElementById('drink-title').value,
@@ -324,201 +325,160 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         render();
     }
 
+    /* ====================================================================
+       render() — baut Angebotsseiten dynamisch auf.
+       Jede Tabellenzeile wird einzeln eingefügt und gemessen.
+       Wenn sie die Fußzeile überlappen würde, wird eine neue Seite
+       erstellt und die Tabelle dort mit Fortsetzungs-Header weitergeführt.
+       ==================================================================== */
     function render() {
-        const container = document.getElementById('tables-container');
-        container.innerHTML = "";
-        
-        stands.forEach(stand => {
-            let rows = stand.items.map(drink => {
-                const pfandText = drink.pfand > 0 ? `<br><span style="font-size:7.5pt; color:#666;">zzgl. ${drink.pfand.toFixed(2)} € Pfand</span>` : '';
-                return `<tr>
-                    <td class="col-drink">
-                        <div class="drink-title">${drink.title}${drink.size ? ' ' + drink.size : ''}</div>
-                        ${drink.desc ? `<div class="drink-desc">${drink.desc}</div>` : ''}
-                        <span class="delete-overlay no-print" onclick="removeDrink(${stand.id}, ${drink.id})">[Löschen]</span>
-                    </td>
-                    <td align="center" class="col-size">${drink.size}</td>
-                    <td align="right" class="col-price">${drink.price.toFixed(2)} €${pfandText}</td>
-                </tr>`;
-            }).join('');
-            
-            container.innerHTML += `
-                <table class="drink-table">
-                    <thead>
-                        <tr>
-                            <th colspan="3">${stand.name} <span class="no-print" style="font-size:8pt; cursor:pointer;" onclick="removeStand(${stand.id})"> (Stand entfernen)</span></th>
-                        </tr>
-                        <tr style="background:#fff; color:#333; font-size:8pt;">
-                            <th class="col-drink">Bezeichnung</th>
-                            <th class="col-size">Größe</th>
-                            <th class="col-price">Preis brutto €</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="2">
-                                <div class="drink-title">Servicegebühr inkl. Auf- und Abbau</div>
-                                <div class="drink-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Leihgebühr, Fahrtkosten und Reinigung</div>
-                            </td>
-                            <td align="right">${stand.service.toFixed(2)} €</td>
-                        </tr>
-                        ${rows}
-                    </tbody>
-                </table>
-            `;
+        const pagesContainer = document.getElementById('offer-pages');
+        pagesContainer.innerHTML = '';
+
+        if (stands.length === 0) return;
+
+        /* --- Seiten-Verwaltung --- */
+        let currentPage, currentContent, currentTable, currentTbody;
+        let currentStandName = null;
+        let maxY = 0;
+        let isFirstPage = true;
+
+        function createPage() {
+            const page = document.createElement('div');
+            page.className = 'a4-page';
+
+            const content = document.createElement('div');
+
+            if (isFirstPage) {
+                const offerId = document.getElementById('out-offer-id');
+                content.innerHTML = '<div class="offer-header-small">' +
+                    'Hier unser Angebot für den vorgenannten Event:<br>' +
+                    '<strong>Angebot Nr. ' + (offerId ? offerId.textContent : '') + '</strong></div>';
+                isFirstPage = false;
+            }
+
+            page.appendChild(content);
+            page.insertAdjacentHTML('beforeend', FOOTER_HTML);
+            pagesContainer.appendChild(page);
+
+            // Fußzeile messen → Grenze berechnen
+            const footer = page.querySelector('.document-footer');
+            maxY = footer.getBoundingClientRect().top - page.getBoundingClientRect().top - 5;
+
+            currentPage = page;
+            currentContent = content;
+            currentTable = null;
+            currentTbody = null;
+            currentStandName = null;
+        }
+
+        function startTable(name, id, isContinuation) {
+            const tbl = document.createElement('table');
+            tbl.className = 'drink-table';
+
+            const thead = document.createElement('thead');
+            if (isContinuation) {
+                thead.innerHTML = '<tr><th colspan="3">' + name + ' (Fortsetzung)</th></tr>' +
+                    '<tr style="background:#fff;color:#333;font-size:8pt;">' +
+                    '<th class="col-drink">Bezeichnung</th><th class="col-size">Größe</th><th class="col-price">Preis brutto €</th></tr>';
+            } else {
+                thead.innerHTML = '<tr><th colspan="3">' + name +
+                    ' <span class="no-print" style="font-size:8pt;cursor:pointer;" onclick="removeStand(' + id + ')"> (Stand entfernen)</span></th></tr>' +
+                    '<tr style="background:#fff;color:#333;font-size:8pt;">' +
+                    '<th class="col-drink">Bezeichnung</th><th class="col-size">Größe</th><th class="col-price">Preis brutto €</th></tr>';
+            }
+            tbl.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            tbl.appendChild(tbody);
+            currentContent.appendChild(tbl);
+
+            currentTable = tbl;
+            currentTbody = tbody;
+            currentStandName = name;
+        }
+
+        function contentBottom() {
+            return currentContent.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+        }
+
+        function addRow(trHTML, standName, standId) {
+            // Neue Tabelle nötig?
+            if (standName !== currentStandName) {
+                startTable(standName, standId, false);
+            }
+
+            // Zeile einfügen
+            const tmp = document.createElement('tbody');
+            tmp.innerHTML = trHTML;
+            const tr = tmp.querySelector('tr');
+            currentTbody.appendChild(tr);
+
+            // Passt es?
+            if (contentBottom() > maxY) {
+                // Nein → Zeile entfernen, neue Seite, Tabelle fortsetzen
+                currentTbody.removeChild(tr);
+                createPage();
+                startTable(standName, standId, true);
+                currentTbody.appendChild(tr);
+            }
+        }
+
+        /* --- Los geht's --- */
+        createPage();
+
+        stands.forEach(function(stand) {
+            // Servicegebühr
+            addRow('<tr>' +
+                '<td colspan="2"><div class="drink-title">Servicegebühr inkl. Auf- und Abbau</div>' +
+                '<div class="drink-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Leihgebühr, Fahrtkosten und Reinigung</div></td>' +
+                '<td align="right">' + stand.service.toFixed(2) + ' €</td></tr>',
+                stand.name, stand.id);
+
+            // Getränke
+            stand.items.forEach(function(drink) {
+                const pfand = drink.pfand > 0 ? '<br><span style="font-size:7.5pt;color:#666;">zzgl. ' + drink.pfand.toFixed(2) + ' € Pfand</span>' : '';
+                addRow('<tr>' +
+                    '<td class="col-drink"><div class="drink-title">' + drink.title + (drink.size ? ' ' + drink.size : '') + '</div>' +
+                    (drink.desc ? '<div class="drink-desc">' + drink.desc + '</div>' : '') +
+                    '<span class="delete-overlay no-print" onclick="removeDrink(' + stand.id + ',' + drink.id + ')">[Löschen]</span></td>' +
+                    '<td align="center" class="col-size">' + drink.size + '</td>' +
+                    '<td align="right" class="col-price">' + drink.price.toFixed(2) + ' €' + pfand + '</td></tr>',
+                    stand.name, stand.id);
+            });
         });
 
-        // Mindestumsatz Info
+        /* --- Mindestumsatz-Info --- */
         const minUmsatz = parseFloat(document.getElementById('inp-min-umsatz').value) || 0;
         const perPerson = parseFloat(document.getElementById('inp-per-person').value) || 0;
         const minPersons = parseInt(document.getElementById('inp-min-persons').value) || 0;
         const customText = document.getElementById('edit-mindestumsatz').value;
-        
-        const minInfo = document.getElementById('mindestumsatz-info');
-        if(minUmsatz > 0 || perPerson > 0) {
+
+        if (minUmsatz > 0 || perPerson > 0) {
             let text = '<strong>' + customText.split('\n')[0] + '</strong><br><br>';
-            if(minPersons > 0) {
-                text += `Bei mind. ${minPersons} Gästen – `;
-            }
-            if(perPerson > 0) {
-                text += `${perPerson.toFixed(2)} € pro Person für Getränke`;
-            }
-            if(minUmsatz > 0) {
-                text += ` (Gesamt: ${minUmsatz.toFixed(2)} €)`;
-            }
+            if (minPersons > 0) text += 'Bei mind. ' + minPersons + ' Gästen – ';
+            if (perPerson > 0) text += perPerson.toFixed(2) + ' € pro Person für Getränke';
+            if (minUmsatz > 0) text += ' (Gesamt: ' + minUmsatz.toFixed(2) + ' €)';
             text += ' zzgl. der Leihgebühren.<br><br>';
-            
-            // Restlichen Text hinzufügen
             const lines = customText.split('\n');
-            for(let i = 1; i < lines.length; i++) {
-                if(lines[i].trim()) {
-                    text += lines[i] + '<br>';
-                } else {
-                    text += '<br>';
-                }
+            for (let i = 1; i < lines.length; i++) {
+                text += lines[i].trim() ? lines[i] + '<br>' : '<br>';
             }
-            
-            minInfo.innerHTML = text;
-        } else {
-            minInfo.innerHTML = '';
-        }
-    }
 
+            const infoDiv = document.createElement('div');
+            infoDiv.style.cssText = 'margin-top:15mm;padding:10px;background:#fff3cd;border:1px solid var(--accent-orange);border-radius:5px;font-size:9pt;white-space:pre-wrap;';
+            infoDiv.innerHTML = text;
+            currentContent.appendChild(infoDiv);
 
-    function getFooterHTML() {
-        return '<div class="document-footer">' +
-        '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
-        '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
-        '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
-        '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
-    '</div>';
-    }
-
-    function distributePages() {
-        var container = document.getElementById('offer-pages');
-        
-        // Collect all table elements from tables-container
-        var tc = document.getElementById('tables-container');
-        var allElements = [];
-        while (tc.firstChild) {
-            allElements.push(tc.removeChild(tc.firstChild));
-        }
-        
-        var extraEl = document.getElementById('mindestumsatz-info');
-        if (extraEl && extraEl.innerHTML.trim()) {
-            allElements.push(extraEl.cloneNode(true));
-        }
-        
-        // Clear the container
-        container.innerHTML = '';
-        
-        // The max content height per page:
-        // A4 = 297mm. Padding top=20mm, footer area=about 18mm (footer height + bottom:10mm + some space)
-        // So usable content height ≈ 297 - 20 - 18 = 259mm
-        // In pixels at screen resolution, 1mm ≈ 3.7795px at 96dpi
-        // But it's better to measure from the actual page element
-        
-        var pageNum = 0;
-        var currentPage = null;
-        var currentContent = null;
-        var maxHeight = 0;
-        
-        function createNewPage(isFirst) {
-            pageNum++;
-            var page = document.createElement('div');
-            page.className = 'a4-page';
-            
-            var content = document.createElement('div');
-            content.className = 'page-inner-content';
-            
-            if (isFirst) {
-                content.innerHTML = '<div class=\"offer-header-small\">Hier unser Angebot für den vorgenannten Event:<br><strong>Angebot Nr. <span id=\"out-offer-id-2\"></span></strong></div>';
-            }
-            
-            page.appendChild(content);
-            page.insertAdjacentHTML('beforeend', getFooterHTML());
-            container.appendChild(page);
-            
-            // Measure available height
-            var pageRect = page.getBoundingClientRect();
-            var footer = page.querySelector('.document-footer');
-            var footerRect = footer.getBoundingClientRect();
-            var padTop = parseFloat(getComputedStyle(page).paddingTop);
-            // Max height = from top of content area to top of footer, minus a small buffer
-            maxHeight = footerRect.top - pageRect.top - padTop - 8;
-            
-            currentPage = page;
-            currentContent = content;
-            return content;
-        }
-        
-        currentContent = createNewPage(true);
-        
-        for (var i = 0; i < allElements.length; i++) {
-            var el = allElements[i];
-            // Skip text nodes that are just whitespace
-            if (el.nodeType === 3 && !el.textContent.trim()) continue;
-            
-            currentContent.appendChild(el);
-            
-            // Measure current content height
-            var contentHeight = currentContent.scrollHeight;
-            
-            if (contentHeight > maxHeight) {
-                // This element caused overflow - move it to a new page
-                currentContent.removeChild(el);
-                currentContent = createNewPage(false);
-                currentContent.appendChild(el);
-                
-                // Check if even a single element overflows a fresh page (very large table)
-                // If so, just leave it - can't split a single table
+            if (contentBottom() > maxY) {
+                currentContent.removeChild(infoDiv);
+                createPage();
+                currentContent.appendChild(infoDiv);
             }
         }
     }
-
-    var _origRender = render;
-    render = function() {
-        // Show temp containers for render to build into
-        document.getElementById('tables-container').style.visibility = 'hidden';
-        // mindestumsatz-info stays off-screen
-        _origRender.apply(this, arguments);
-        // Hide them again and distribute to pages
-        // tables-container stays off-screen
-        var mi = document.getElementById('mindestumsatz-info');
-        // mindestumsatz-info stays off-screen
-        requestAnimationFrame(function() {
-            distributePages();
-            // Re-set offer ID on dynamically created pages
-            var el = document.getElementById('out-offer-id-2');
-            if (el) {
-                var src = document.getElementById('out-offer-id');
-                if (src) el.textContent = src.textContent;
-            }
-        });
-    };
 
     init();
-
 </script>
 </body>
 </html>
