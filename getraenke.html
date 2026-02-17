@@ -200,30 +200,8 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 </div>
 
 <div class="preview-panel">
-    <!-- SEITE 1: Anschreiben (statisch) -->
-    <div class="a4-page">
-        <img src="LK_Logo_ohne_black.png" class="header-logo">
-        <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
-        <div class="address-box" id="out-recipient"></div>
-        <div style="text-align: right; font-size: 10.5pt; margin-bottom: 5mm;" id="out-today"></div>
-        
-        <table class="event-info">
-            <tr><td>Catering:</td><td id="out-date"></td></tr>
-            <tr><td>Event:</td><td id="out-event"></td></tr>
-            <tr><td>Ort / Location:</td><td id="out-location"></td></tr>
-            <tr><td>Uhrzeit:</td><td id="out-time"></td></tr>
-            <tr><td>Angebot Nr.:</td><td id="out-offer-id"></td></tr>
-        </table>
-        <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
-        <div class="intro-text" id="out-intro"></div>
-
-        <div class="document-footer">
-            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
-            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>
-            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
-            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
-        </div>
-    </div>
+    <!-- SEITE 1+: Anschreiben (dynamisch, für langen Intro-Text) -->
+    <div id="cover-pages"></div>
 
     <!-- SEITE 2+: dynamisch erzeugte Angebots-Seiten -->
     <div id="offer-pages"></div>
@@ -259,20 +237,102 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
     function init() {
         const p = new URLSearchParams(window.location.search);
         if(p.get('recipient')) {
-            document.getElementById('out-recipient').innerHTML = decodeURIComponent(escape(atob(p.get('recipient')))).replace(/\n/g, '<br>');
-            document.getElementById('out-event').textContent = p.get('event');
-            document.getElementById('out-location').textContent = p.get('location');
-            document.getElementById('out-time').textContent = p.get('time');
-            document.getElementById('out-offer-id').textContent = p.get('offerId');
-            document.getElementById('out-valid-until').textContent = formatDate(p.get('validUntil'));
-            document.getElementById('out-date').textContent = "am " + formatDate(p.get('date'));
-            document.getElementById('out-today').textContent = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-            updateIntro();
+            window._recipient = decodeURIComponent(escape(atob(p.get('recipient')))).replace(/\n/g, '<br>');
+            window._event = p.get('event');
+            window._location = p.get('location');
+            window._time = p.get('time');
+            window._offerId = p.get('offerId');
+            window._validUntil = formatDate(p.get('validUntil'));
+            window._date = "am " + formatDate(p.get('date'));
+            window._today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
         }
+        renderCover();
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
-    function updateIntro() { document.getElementById('out-intro').textContent = document.getElementById('edit-intro').value; }
+    function updateIntro() { renderCover(); }
+
+    /* ==========================================================
+       renderCover() — baut Seite 1 (Anschreiben) dynamisch auf.
+       Der Intro-Text wird absatzweise eingefügt und gemessen.
+       Bei Überlauf wird eine Folgeseite erstellt.
+       ========================================================== */
+    function renderCover() {
+        const container = document.getElementById('cover-pages');
+        container.innerHTML = '';
+
+        let currentPage, currentContent, maxY;
+
+        function createCoverPage(isFirst) {
+            const page = document.createElement('div');
+            page.className = 'a4-page';
+            const content = document.createElement('div');
+
+            if (isFirst) {
+                content.innerHTML =
+                    '<img src="LK_Logo_ohne_black.png" class="header-logo">' +
+                    '<div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>' +
+                    '<div class="address-box" id="out-recipient">' + (window._recipient || '') + '</div>' +
+                    '<div style="text-align:right;font-size:10.5pt;margin-bottom:5mm;" id="out-today">' + (window._today || '') + '</div>' +
+                    '<table class="event-info">' +
+                        '<tr><td>Catering:</td><td id="out-date">' + (window._date || '') + '</td></tr>' +
+                        '<tr><td>Event:</td><td id="out-event">' + (window._event || '') + '</td></tr>' +
+                        '<tr><td>Ort / Location:</td><td id="out-location">' + (window._location || '') + '</td></tr>' +
+                        '<tr><td>Uhrzeit:</td><td id="out-time">' + (window._time || '') + '</td></tr>' +
+                        '<tr><td>Angebot Nr.:</td><td id="out-offer-id">' + (window._offerId || '') + '</td></tr>' +
+                    '</table>' +
+                    '<div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until">' + (window._validUntil || '') + '</span></div>';
+            }
+
+            page.appendChild(content);
+            page.insertAdjacentHTML('beforeend', FOOTER_HTML);
+            container.appendChild(page);
+
+            const footer = page.querySelector('.document-footer');
+            maxY = footer.getBoundingClientRect().top - page.getBoundingClientRect().top - 5;
+
+            currentPage = page;
+            currentContent = content;
+        }
+
+        function contentBottom() {
+            return currentContent.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+        }
+
+        // Erste Cover-Seite
+        createCoverPage(true);
+
+        // Intro-Text absatzweise einfügen
+        const introText = document.getElementById('edit-intro').value;
+        if (introText.trim()) {
+            const paragraphs = introText.split('\n');
+
+            paragraphs.forEach(function(para) {
+                const p = document.createElement('div');
+                p.className = 'intro-text';
+                p.style.whiteSpace = 'normal';
+                p.style.marginBottom = '0';
+                p.style.lineHeight = '1.6';
+                p.style.fontSize = '11pt';
+
+                if (para.trim() === '') {
+                    // Leerzeile → kleiner Abstand
+                    p.innerHTML = '&nbsp;';
+                    p.style.lineHeight = '0.8';
+                } else {
+                    p.textContent = para;
+                }
+
+                currentContent.appendChild(p);
+
+                if (contentBottom() > maxY) {
+                    currentContent.removeChild(p);
+                    createCoverPage(false);
+                    currentContent.appendChild(p);
+                }
+            });
+        }
+    }
     
     function loadPreset() {
         const key = document.getElementById('drink-presets').value;
@@ -350,10 +410,9 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
             const content = document.createElement('div');
 
             if (isFirstPage) {
-                const offerId = document.getElementById('out-offer-id');
                 content.innerHTML = '<div class="offer-header-small">' +
                     'Hier unser Angebot für den vorgenannten Event:<br>' +
-                    '<strong>Angebot Nr. ' + (offerId ? offerId.textContent : '') + '</strong></div>';
+                    '<strong>Angebot Nr. ' + (window._offerId || '') + '</strong></div>';
                 isFirstPage = false;
             }
 
