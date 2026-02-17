@@ -88,8 +88,14 @@
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; min-height: 297mm; height: auto; padding-bottom: 25mm; }
             body { background: white; }
+            .document-footer {
+                position: fixed;
+                bottom: 10mm;
+                left: 20mm;
+                right: 20mm;
+            }
         }
     </style>
 </head>
