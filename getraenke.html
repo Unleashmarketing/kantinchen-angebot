@@ -38,10 +38,10 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; height: 297mm; background: white; padding: 20mm 20mm 28mm 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
-            overflow: hidden; flex-shrink: 0;
+            flex-shrink: 0;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -80,17 +80,16 @@
 
         /* Footer */
         .document-footer {
-            margin-top: auto;
+            position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
             display: grid; grid-template-columns: repeat(4, 1fr);
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
         .footer-col { line-height: 1.4; }
-        .page-content { flex: 1; overflow: hidden; }
 
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; overflow: hidden; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
             body { background: white; }
         }
     </style>
@@ -204,7 +203,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
 <div class="preview-panel">
     <div class="a4-page">
-        <div class="page-content">
         <img src="LK_Logo_ohne_black.png" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
         <div class="address-box" id="out-recipient"></div>
@@ -220,8 +218,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
         <div class="intro-text" id="out-intro"></div>
 
-                </div>
-
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
             <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>
@@ -231,7 +227,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
     </div>
 
     <div class="a4-page" id="offer-page-2">
-        <div class="page-content">
         <div class="offer-header-small">
             Hier unser Angebot für den vorgenannten Event:<br>
             <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
@@ -239,8 +234,6 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         <div id="tables-container"></div>
 
         <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt; white-space: pre-wrap;"></div>
-
-                </div>
 
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
@@ -424,83 +417,144 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
 
     function getFooterHTML() {
-        return `<div class="document-footer"><div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div><div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div><div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div><div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div></div>`;
+        return '<div class="document-footer">' +
+            '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
+            '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
+            '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
+            '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
+        '</div>';
     }
 
     function paginateOfferPages() {
         // Remove previously created overflow pages
-        document.querySelectorAll('.overflow-page').forEach(el => el.remove());
+        document.querySelectorAll('.overflow-page').forEach(function(el) { el.remove(); });
 
-        const firstOfferPage = document.getElementById('offer-page-2');
-        if (!firstOfferPage) return;
+        var offerPage = document.getElementById('offer-page-2');
+        if (!offerPage) return;
 
-        const pageContent = firstOfferPage.querySelector('.page-content');
-        if (!pageContent) return;
+        // The max usable content height inside the page
+        // Page = 297mm, padding-top = 20mm, padding-bottom = 25mm (we set this to leave room for footer)
+        // So content area = 297 - 20 - 25 = 252mm
+        // Footer is absolutely positioned at bottom:10mm, which is inside the padding-bottom area
+        var maxContentHeight = offerPage.clientHeight - parseFloat(getComputedStyle(offerPage).paddingTop) - parseFloat(getComputedStyle(offerPage).paddingBottom);
 
-        const footer = firstOfferPage.querySelector('.document-footer');
-        if (!footer) return;
+        // Get the content container - it's the div#tables-container (or equivalent)
+        // We need to find all direct children that are content (not the footer)
+        var contentChildren = [];
+        for (var i = 0; i < offerPage.children.length; i++) {
+            var child = offerPage.children[i];
+            if (!child.classList.contains('document-footer')) {
+                contentChildren.push(child);
+            }
+        }
 
-        // Available content height = page height - top padding - footer height - bottom padding buffer
-        // 297mm page, 20mm top pad, footer ~12mm + 10mm bottom = ~255mm usable, minus some safety
-        const footerH = footer.offsetHeight;
-        const pageStyle = getComputedStyle(firstOfferPage);
-        const pageH = firstOfferPage.clientHeight;
-        const padTop = parseFloat(pageStyle.paddingTop);
-        const padBot = parseFloat(pageStyle.paddingBottom);
-        const maxContentH = pageH - padTop - padBot - footerH - 10; // 10px safety
+        // Measure total content height
+        var totalHeight = 0;
+        contentChildren.forEach(function(c) {
+            totalHeight += c.offsetHeight + parseFloat(getComputedStyle(c).marginTop) + parseFloat(getComputedStyle(c).marginBottom);
+        });
 
-        // Collect all movable children from page-content
-        const children = Array.from(pageContent.children);
+        if (totalHeight <= maxContentHeight) return; // fits on one page
+
+        // Need to paginate. Find the container with tables
+        var tablesContainer = document.getElementById('tables-container');
+        if (!tablesContainer) return;
+
+        // Collect all moveable elements: children of tables-container + any sibling info boxes
+        var moveableElements = [];
+        // First add all tables from tables-container as individual items
+        var tables = Array.from(tablesContainer.children);
+        tables.forEach(function(t) { moveableElements.push(t); });
+
+        // Also check for info boxes after tables-container (mindestumsatz-info, info-box divs)
+        var sibling = tablesContainer.nextElementSibling;
+        while (sibling && !sibling.classList.contains('document-footer')) {
+            moveableElements.push(sibling);
+            sibling = sibling.nextElementSibling;
+        }
+
+        // Now redistribute: keep measuring and when overflow detected, move to new page
+        var currentPage = offerPage;
         
-        let currentPage = firstOfferPage;
-        let currentContent = pageContent;
-        let currentMaxH = maxContentH;
+        function getCurrentContentHeight(page) {
+            var h = 0;
+            for (var i = 0; i < page.children.length; i++) {
+                var child = page.children[i];
+                if (!child.classList.contains('document-footer')) {
+                    h += child.offsetHeight;
+                    var style = getComputedStyle(child);
+                    h += parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+                }
+            }
+            return h;
+        }
 
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
+        function getMaxHeight(page) {
+            return page.clientHeight - parseFloat(getComputedStyle(page).paddingTop) - parseFloat(getComputedStyle(page).paddingBottom);
+        }
+
+        function createNewPage() {
+            var newPage = document.createElement('div');
+            newPage.className = 'a4-page overflow-page';
+            newPage.innerHTML = getFooterHTML();
+            offerPage.parentNode.appendChild(newPage);
+            return newPage;
+        }
+
+        // Re-check after DOM is already built: go through moveable elements
+        // and move overflowing ones to new pages
+        for (var idx = 0; idx < moveableElements.length; idx++) {
+            var el = moveableElements[idx];
+            // Check if current page is overflowing
+            var ch = getCurrentContentHeight(currentPage);
+            var mh = getMaxHeight(currentPage);
             
-            // Check if content now exceeds max height
-            if (currentContent.scrollHeight > currentMaxH) {
-                // This child caused overflow - move it to a new page
-                const newPage = document.createElement('div');
-                newPage.className = 'a4-page overflow-page';
+            if (ch > mh) {
+                // This element (or a previous one) caused overflow
+                // Move this element to a new page
+                var newPage = createNewPage();
+                var footer = currentPage.querySelector('.document-footer');
                 
-                const newContent = document.createElement('div');
-                newContent.className = 'page-content';
-                newPage.appendChild(newContent);
-                newPage.insertAdjacentHTML('beforeend', getFooterHTML());
+                // Move this and all remaining elements to new page
+                // Insert before the footer of the new page
+                var newFooter = newPage.querySelector('.document-footer');
+                newPage.insertBefore(el, newFooter);
                 
-                // Insert after current page
-                currentPage.after(newPage);
+                // Move remaining elements too
+                for (var j = idx + 1; j < moveableElements.length; j++) {
+                    newPage.insertBefore(moveableElements[j], newFooter);
+                }
                 
-                // Move this child and all remaining children to new page
-                newContent.appendChild(child);
-                
+                // Now check if the new page also overflows — recursion via loop
                 currentPage = newPage;
-                currentContent = newContent;
-                
-                // Recalculate max for new page (no offer header on continuation pages)
-                const newFooter = newPage.querySelector('.document-footer');
-                const newPageH = newPage.clientHeight;
-                const newPadTop = parseFloat(getComputedStyle(newPage).paddingTop);
-                const newPadBot = parseFloat(getComputedStyle(newPage).paddingBottom);
-                currentMaxH = newPageH - newPadTop - newPadBot - (newFooter ? newFooter.offsetHeight : footerH) - 10;
+                // Continue the loop from the next element (which is already moved)
+                // But we need to re-index since we moved things
+                // Actually, let's just re-run the whole function
+                requestAnimationFrame(function() { paginateOfferPages(); });
+                return;
             }
         }
     }
 
-    // Wrap render to auto-paginate
-    const _originalRender = render;
+    // Wrap render to auto-paginate after content changes
+    var _originalRender = render;
     render = function() {
         _originalRender.apply(this, arguments);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
+        // Use double-rAF to ensure DOM is fully laid out before measuring
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
                 paginateOfferPages();
             });
         });
     };
 
     init();
+    // Also paginate on initial load
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            paginateOfferPages();
+        });
+    });
 </script>
 </body>
 </html>
