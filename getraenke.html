@@ -38,9 +38,10 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
+            width: 210mm; height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
+            overflow: hidden; flex-shrink: 0;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -79,23 +80,18 @@
 
         /* Footer */
         .document-footer {
-            position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
+            margin-top: auto;
             display: grid; grid-template-columns: repeat(4, 1fr);
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
         .footer-col { line-height: 1.4; }
+        .page-content { flex: 1; overflow: hidden; }
 
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; min-height: 297mm; height: auto; padding-bottom: 25mm; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; overflow: hidden; }
             body { background: white; }
-            .document-footer {
-                position: fixed;
-                bottom: 10mm;
-                left: 20mm;
-                right: 20mm;
-            }
         }
     </style>
 </head>
@@ -208,6 +204,7 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
 <div class="preview-panel">
     <div class="a4-page">
+        <div class="page-content">
         <img src="LK_Logo_ohne_black.png" class="header-logo">
         <div class="sender-line">Laras Kantinchen, Chr.-Kröwerath-Straße 132, 67071 Ludwigshafen</div>
         <div class="address-box" id="out-recipient"></div>
@@ -223,15 +220,18 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         <div class="reserviert-banner">Reserviert bis zum <span id="out-valid-until"></span></div>
         <div class="intro-text" id="out-intro"></div>
 
+                </div>
+
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
-            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dbb7baa9baa8f6b0bab5afb2b5b8b3beb59bbeb6bab2b7f5bfbe">[email&#160;protected]</a></div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>
             <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
             <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
         </div>
     </div>
 
-    <div class="a4-page">
+    <div class="a4-page" id="offer-page-2">
+        <div class="page-content">
         <div class="offer-header-small">
             Hier unser Angebot für den vorgenannten Event:<br>
             <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
@@ -240,16 +240,18 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
         <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt; white-space: pre-wrap;"></div>
 
+                </div>
+
         <div class="document-footer">
             <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
-            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c3afa2b1a2b0eea8a2adb7aaada0aba6ad83a6aea2aaafeda7a6">[email&#160;protected]</a></div>
+            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>
             <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
             <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
         </div>
     </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
     const presets = {
         limo: { title: "Laute Limo", size: "0,33l", price: 3.50, pfand: 1.00, desc: "Fruchtig in der Zubereitung, weniger süß, mit weniger Kohlensäure. Sorten: Zitrone, Grapefrucht und Cola-Orange" },
         wasser: { title: "Mineralwasser classic / still", size: "0,5l", price: 3.50, pfand: 1.00, desc: "" },
@@ -419,6 +421,84 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
             minInfo.innerHTML = '';
         }
     }
+
+
+    function getFooterHTML() {
+        return `<div class="document-footer"><div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div><div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div><div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div><div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div></div>`;
+    }
+
+    function paginateOfferPages() {
+        // Remove previously created overflow pages
+        document.querySelectorAll('.overflow-page').forEach(el => el.remove());
+
+        const firstOfferPage = document.getElementById('offer-page-2');
+        if (!firstOfferPage) return;
+
+        const pageContent = firstOfferPage.querySelector('.page-content');
+        if (!pageContent) return;
+
+        const footer = firstOfferPage.querySelector('.document-footer');
+        if (!footer) return;
+
+        // Available content height = page height - top padding - footer height - bottom padding buffer
+        // 297mm page, 20mm top pad, footer ~12mm + 10mm bottom = ~255mm usable, minus some safety
+        const footerH = footer.offsetHeight;
+        const pageStyle = getComputedStyle(firstOfferPage);
+        const pageH = firstOfferPage.clientHeight;
+        const padTop = parseFloat(pageStyle.paddingTop);
+        const padBot = parseFloat(pageStyle.paddingBottom);
+        const maxContentH = pageH - padTop - padBot - footerH - 10; // 10px safety
+
+        // Collect all movable children from page-content
+        const children = Array.from(pageContent.children);
+        
+        let currentPage = firstOfferPage;
+        let currentContent = pageContent;
+        let currentMaxH = maxContentH;
+
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            
+            // Check if content now exceeds max height
+            if (currentContent.scrollHeight > currentMaxH) {
+                // This child caused overflow - move it to a new page
+                const newPage = document.createElement('div');
+                newPage.className = 'a4-page overflow-page';
+                
+                const newContent = document.createElement('div');
+                newContent.className = 'page-content';
+                newPage.appendChild(newContent);
+                newPage.insertAdjacentHTML('beforeend', getFooterHTML());
+                
+                // Insert after current page
+                currentPage.after(newPage);
+                
+                // Move this child and all remaining children to new page
+                newContent.appendChild(child);
+                
+                currentPage = newPage;
+                currentContent = newContent;
+                
+                // Recalculate max for new page (no offer header on continuation pages)
+                const newFooter = newPage.querySelector('.document-footer');
+                const newPageH = newPage.clientHeight;
+                const newPadTop = parseFloat(getComputedStyle(newPage).paddingTop);
+                const newPadBot = parseFloat(getComputedStyle(newPage).paddingBottom);
+                currentMaxH = newPageH - newPadTop - newPadBot - (newFooter ? newFooter.offsetHeight : footerH) - 10;
+            }
+        }
+    }
+
+    // Wrap render to auto-paginate
+    const _originalRender = render;
+    render = function() {
+        _originalRender.apply(this, arguments);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                paginateOfferPages();
+            });
+        });
+    };
 
     init();
 </script>
