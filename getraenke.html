@@ -38,10 +38,9 @@
         /* --- A4 PREVIEW --- */
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
-            width: 210mm; height: 297mm; background: white; padding: 20mm 20mm 28mm 20mm; 
+            width: 210mm; min-height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
             display: flex; flex-direction: column; page-break-after: always;
-            flex-shrink: 0;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
@@ -85,12 +84,14 @@
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
         .footer-col { line-height: 1.4; }
+        .page-inner-content { }
 
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; }
-            body { background: white; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; page-break-after: always; page-break-inside: avoid; }
+            #tables-container, #mindestumsatz-info { display: none !important; }
+            body { background: white; overflow: visible !important; height: auto !important; display: block !important; }
         }
     </style>
 </head>
@@ -226,22 +227,10 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         </div>
     </div>
 
-    <div class="a4-page" id="offer-page-2">
-        <div class="offer-header-small">
-            Hier unser Angebot für den vorgenannten Event:<br>
-            <strong>Angebot Nr. <span id="out-offer-id-2"></span></strong>
-        </div>
-        <div id="tables-container"></div>
-
-        <div id="mindestumsatz-info" style="margin-top: 15mm; padding: 10px; background: #fff3cd; border: 1px solid var(--accent-orange); border-radius: 5px; font-size: 9pt; white-space: pre-wrap;"></div>
-
-        <div class="document-footer">
-            <div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>
-            <div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>
-            <div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>
-            <div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>
-        </div>
-    </div>
+    <div id="offer-pages"></div>
+    <!-- Hidden container for render() to build into before distribution -->
+    <div id="tables-container" style="position:absolute;left:-9999px;top:0;width:170mm;visibility:hidden;"></div>
+    <div id="mindestumsatz-info" style="position:absolute;left:-9999px;top:0;width:170mm;visibility:hidden;"></div>
 </div>
 
 <script>
@@ -418,143 +407,118 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
 
     function getFooterHTML() {
         return '<div class="document-footer">' +
-            '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
-            '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
-            '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
-            '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
-        '</div>';
+        '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
+        '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
+        '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
+        '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
+    '</div>';
     }
 
-    function paginateOfferPages() {
-        // Remove previously created overflow pages
-        document.querySelectorAll('.overflow-page').forEach(function(el) { el.remove(); });
-
-        var offerPage = document.getElementById('offer-page-2');
-        if (!offerPage) return;
-
-        // The max usable content height inside the page
-        // Page = 297mm, padding-top = 20mm, padding-bottom = 25mm (we set this to leave room for footer)
-        // So content area = 297 - 20 - 25 = 252mm
-        // Footer is absolutely positioned at bottom:10mm, which is inside the padding-bottom area
-        var maxContentHeight = offerPage.clientHeight - parseFloat(getComputedStyle(offerPage).paddingTop) - parseFloat(getComputedStyle(offerPage).paddingBottom);
-
-        // Get the content container - it's the div#tables-container (or equivalent)
-        // We need to find all direct children that are content (not the footer)
-        var contentChildren = [];
-        for (var i = 0; i < offerPage.children.length; i++) {
-            var child = offerPage.children[i];
-            if (!child.classList.contains('document-footer')) {
-                contentChildren.push(child);
-            }
-        }
-
-        // Measure total content height
-        var totalHeight = 0;
-        contentChildren.forEach(function(c) {
-            totalHeight += c.offsetHeight + parseFloat(getComputedStyle(c).marginTop) + parseFloat(getComputedStyle(c).marginBottom);
-        });
-
-        if (totalHeight <= maxContentHeight) return; // fits on one page
-
-        // Need to paginate. Find the container with tables
-        var tablesContainer = document.getElementById('tables-container');
-        if (!tablesContainer) return;
-
-        // Collect all moveable elements: children of tables-container + any sibling info boxes
-        var moveableElements = [];
-        // First add all tables from tables-container as individual items
-        var tables = Array.from(tablesContainer.children);
-        tables.forEach(function(t) { moveableElements.push(t); });
-
-        // Also check for info boxes after tables-container (mindestumsatz-info, info-box divs)
-        var sibling = tablesContainer.nextElementSibling;
-        while (sibling && !sibling.classList.contains('document-footer')) {
-            moveableElements.push(sibling);
-            sibling = sibling.nextElementSibling;
-        }
-
-        // Now redistribute: keep measuring and when overflow detected, move to new page
-        var currentPage = offerPage;
+    function distributePages() {
+        var container = document.getElementById('offer-pages');
         
-        function getCurrentContentHeight(page) {
-            var h = 0;
-            for (var i = 0; i < page.children.length; i++) {
-                var child = page.children[i];
-                if (!child.classList.contains('document-footer')) {
-                    h += child.offsetHeight;
-                    var style = getComputedStyle(child);
-                    h += parseFloat(style.marginTop) + parseFloat(style.marginBottom);
-                }
-            }
-            return h;
+        // Collect all table elements from tables-container
+        var tc = document.getElementById('tables-container');
+        var allElements = [];
+        while (tc.firstChild) {
+            allElements.push(tc.removeChild(tc.firstChild));
         }
-
-        function getMaxHeight(page) {
-            return page.clientHeight - parseFloat(getComputedStyle(page).paddingTop) - parseFloat(getComputedStyle(page).paddingBottom);
+        
+        var extraEl = document.getElementById('mindestumsatz-info');
+        if (extraEl && extraEl.innerHTML.trim()) {
+            allElements.push(extraEl.cloneNode(true));
         }
-
-        function createNewPage() {
-            var newPage = document.createElement('div');
-            newPage.className = 'a4-page overflow-page';
-            newPage.innerHTML = getFooterHTML();
-            offerPage.parentNode.appendChild(newPage);
-            return newPage;
-        }
-
-        // Re-check after DOM is already built: go through moveable elements
-        // and move overflowing ones to new pages
-        for (var idx = 0; idx < moveableElements.length; idx++) {
-            var el = moveableElements[idx];
-            // Check if current page is overflowing
-            var ch = getCurrentContentHeight(currentPage);
-            var mh = getMaxHeight(currentPage);
+        
+        // Clear the container
+        container.innerHTML = '';
+        
+        // The max content height per page:
+        // A4 = 297mm. Padding top=20mm, footer area=about 18mm (footer height + bottom:10mm + some space)
+        // So usable content height ≈ 297 - 20 - 18 = 259mm
+        // In pixels at screen resolution, 1mm ≈ 3.7795px at 96dpi
+        // But it's better to measure from the actual page element
+        
+        var pageNum = 0;
+        var currentPage = null;
+        var currentContent = null;
+        var maxHeight = 0;
+        
+        function createNewPage(isFirst) {
+            pageNum++;
+            var page = document.createElement('div');
+            page.className = 'a4-page';
             
-            if (ch > mh) {
-                // This element (or a previous one) caused overflow
-                // Move this element to a new page
-                var newPage = createNewPage();
-                var footer = currentPage.querySelector('.document-footer');
+            var content = document.createElement('div');
+            content.className = 'page-inner-content';
+            
+            if (isFirst) {
+                content.innerHTML = '<div class=\"offer-header-small\">Hier unser Angebot für den vorgenannten Event:<br><strong>Angebot Nr. <span id=\"out-offer-id-2\"></span></strong></div>';
+            }
+            
+            page.appendChild(content);
+            page.insertAdjacentHTML('beforeend', getFooterHTML());
+            container.appendChild(page);
+            
+            // Measure available height
+            var pageRect = page.getBoundingClientRect();
+            var footer = page.querySelector('.document-footer');
+            var footerRect = footer.getBoundingClientRect();
+            var padTop = parseFloat(getComputedStyle(page).paddingTop);
+            // Max height = from top of content area to top of footer, minus a small buffer
+            maxHeight = footerRect.top - pageRect.top - padTop - 8;
+            
+            currentPage = page;
+            currentContent = content;
+            return content;
+        }
+        
+        currentContent = createNewPage(true);
+        
+        for (var i = 0; i < allElements.length; i++) {
+            var el = allElements[i];
+            // Skip text nodes that are just whitespace
+            if (el.nodeType === 3 && !el.textContent.trim()) continue;
+            
+            currentContent.appendChild(el);
+            
+            // Measure current content height
+            var contentHeight = currentContent.scrollHeight;
+            
+            if (contentHeight > maxHeight) {
+                // This element caused overflow - move it to a new page
+                currentContent.removeChild(el);
+                currentContent = createNewPage(false);
+                currentContent.appendChild(el);
                 
-                // Move this and all remaining elements to new page
-                // Insert before the footer of the new page
-                var newFooter = newPage.querySelector('.document-footer');
-                newPage.insertBefore(el, newFooter);
-                
-                // Move remaining elements too
-                for (var j = idx + 1; j < moveableElements.length; j++) {
-                    newPage.insertBefore(moveableElements[j], newFooter);
-                }
-                
-                // Now check if the new page also overflows — recursion via loop
-                currentPage = newPage;
-                // Continue the loop from the next element (which is already moved)
-                // But we need to re-index since we moved things
-                // Actually, let's just re-run the whole function
-                requestAnimationFrame(function() { paginateOfferPages(); });
-                return;
+                // Check if even a single element overflows a fresh page (very large table)
+                // If so, just leave it - can't split a single table
             }
         }
     }
 
-    // Wrap render to auto-paginate after content changes
-    var _originalRender = render;
+    var _origRender = render;
     render = function() {
-        _originalRender.apply(this, arguments);
-        // Use double-rAF to ensure DOM is fully laid out before measuring
+        // Show temp containers for render to build into
+        document.getElementById('tables-container').style.visibility = 'hidden';
+        // mindestumsatz-info stays off-screen
+        _origRender.apply(this, arguments);
+        // Hide them again and distribute to pages
+        // tables-container stays off-screen
+        var mi = document.getElementById('mindestumsatz-info');
+        // mindestumsatz-info stays off-screen
         requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                paginateOfferPages();
-            });
+            distributePages();
+            // Re-set offer ID on dynamically created pages
+            var el = document.getElementById('out-offer-id-2');
+            if (el) {
+                var src = document.getElementById('out-offer-id');
+                if (src) el.textContent = src.textContent;
+            }
         });
     };
 
     init();
-    // Also paginate on initial load
-    requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-            paginateOfferPages();
-        });
-    });
+
 </script>
 </body>
 </html>
