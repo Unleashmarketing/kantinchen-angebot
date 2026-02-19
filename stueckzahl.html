@@ -107,6 +107,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             <label>Produkt-Vorlagen</label>
             <select id="food-presets" onchange="loadPreset()">
                 <option value="">-- Bitte wählen --</option>
+                <optgroup label="Grill & Equipment">
+                    <option value="service">Servicegebühr & Truck</option>
+                    <option value="grillstation">Grillstation</option>
+                    <option value="zelt">Zelt 3 x 3 Meter</option>
+                    <option value="klappbar">Klapp-Bar</option>
+                    <option value="fritteuse">Fritteuse</option>
+                </optgroup>
                 <optgroup label="Pastrami Sandwiches">
                     <option value="ps_sally">Pastrami Sandwich Sally</option>
                     <option value="ps_harry">Pastrami Sandwich Harry</option>
@@ -121,7 +128,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     <option value="spaetzle">Käsespätzle</option>
                     <option value="salat">Pflücksalat</option>
                     <option value="curry">Linsen-Curry</option>
-                    <option value="service">Servicegebühr & Truck</option>
+                    <option value="maultaschen">Geschmelzte Maultaschen</option>
+                </optgroup>
+                <optgroup label="Grill-Speisen">
+                    <option value="pommes">Portion Pommes Frites (frisch)</option>
+                    <option value="hamburger">Hamburger / Cheeseburger</option>
+                    <option value="burgermenu">Burger-Menü</option>
+                    <option value="salsiccia">Paar gegrillte Salsiccia</option>
+                    <option value="bratwurst">Bratwurst im Brötchen</option>
                 </optgroup>
             </select>
         </div>
@@ -159,7 +173,17 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", price: 8.50, desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
         salat: { title: "Bunter Pflücksalat - vegetarisch -", price: 7.50, desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
         curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" },
-        service: { title: "Servicegebühr inkl. Auf- und Abbau", price: 500.00, desc: "Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung" }
+        service: { title: "Servicegebühr inkl. Auf- und Abbau", price: 500.00, desc: "Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung" },
+        grillstation: { title: "Grillstation", price: 180.00, desc: "Tisch, Grill, Gasflasche, Reinigung" },
+        zelt: { title: "Zelt 3 x 3 Meter", price: 50.00, desc: "" },
+        klappbar: { title: "Klapp-Bar", price: 25.00, desc: "" },
+        fritteuse: { title: "Fritteuse", price: 100.00, desc: "" },
+        pommes: { title: "Portion Pommes Frites (frisch)", price: 4.50, desc: "Incl. Heinz-Ketchup / Heinz-Pommes Soße" },
+        hamburger: { title: "Hamburger / Cheeseburger (180 gr. Rind)", price: 9.50, desc: "Senf, Salat, Tomate, rote Zwiebeln, Jalapenos (wahlweise), Ketchup" },
+        burgermenu: { title: "Burger-Menü (Burger und Pommes)", price: 13.00, desc: "" },
+        salsiccia: { title: "Paar gegrillte Salsiccia", price: 10.00, desc: "an hausgemachtem mediterranem Kartoffelsalat" },
+        bratwurst: { title: "Bratwurst im Brötchen", price: 5.00, desc: "incl. Ketchup / Senf" },
+        maultaschen: { title: "Geschmelzte Maultaschen (Fleisch) auf buntem Pflücksalat", price: 8.50, desc: "mit Röstzwiebeln und hausgemachter Kräutervinaigrette, dazu Brotecken" }
     };
 
     let trucks = [];
