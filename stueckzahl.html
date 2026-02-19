@@ -69,26 +69,6 @@
         }
         .footer-col { line-height: 1.4; }
 
-
-        .agb-content { font-size: 9.5pt; line-height: 1.5; }
-        .agb-content h3 { font-size: 11pt; color: var(--primary-color); margin: 4mm 0 2mm 0; text-decoration: underline; }
-        .agb-content p { margin: 0 0 3mm 0; }
-        .agb-content ul { margin: 2mm 0 3mm 5mm; padding-left: 5mm; }
-        .agb-content ul li { margin-bottom: 2mm; }
-        .agb-content .payment-info { font-style: italic; text-align: center; margin: 3mm 0; }
-        .agb-content .bold { font-weight: bold; }
-        .agb-content .underline { text-decoration: underline; }
-
-        /* AGB Styling */
-        .agb-content { font-size: 9pt; line-height: 1.5; color: var(--primary-color); margin-bottom: 3mm; }
-        .agb-content h3 { font-size: 11pt; color: var(--primary-color); margin: 0 0 3mm 0; }
-        .agb-content p { margin: 0 0 2mm 0; }
-        .agb-content ul { margin: 2mm 0; padding-left: 6mm; }
-        .agb-content li { margin-bottom: 2mm; }
-        .agb-content .bold { font-weight: bold; }
-        .agb-content .underline { text-decoration: underline; }
-        .agb-content .payment-info { text-align: center; font-style: italic; margin: 3mm 0; }
-
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; display: block; }
@@ -121,20 +101,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         
         <div class="form-group">
             <label>Ziel-Truck</label>
-                <optgroup label="Grill &amp; Burger">
-                    <option value="pommes">Portion Pommes Frites (frisch)</option>
-                    <option value="burger">Hamburger / Cheeseburger (180 gr. Rind)</option>
-                    <option value="burgermenu">Burger-Menü (Burger und Pommes)</option>
-                    <option value="salsiccia">Paar gegrillte Salsiccia</option>
-                    <option value="bratwurst">Bratwurst im Brötchen</option>
-                    <option value="maultaschen">Geschmelzte Maultaschen (Fleisch)</option>
-                </optgroup>
-                <optgroup label="Equipment">
-                    <option value="grillstation">Grillstation</option>
-                    <option value="zelt">Zelt 3 x 3 Meter</option>
-                    <option value="klappbar">Klapp-Bar</option>
-                    <option value="fritteuse">Fritteuse</option>
-                </optgroup>
             <select id="food-target"></select>
         </div>
         <div class="form-group">
@@ -157,20 +123,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     <option value="curry">Linsen-Curry</option>
                     <option value="service">Servicegebühr & Truck</option>
                 </optgroup>
-                <optgroup label="Grill &amp; Burger">
-                    <option value="pommes">Portion Pommes Frites (frisch)</option>
-                    <option value="burger">Hamburger / Cheeseburger (180 gr. Rind)</option>
-                    <option value="burgermenu">Burger-Menü (Burger und Pommes)</option>
-                    <option value="salsiccia">Paar gegrillte Salsiccia</option>
-                    <option value="bratwurst">Bratwurst im Brötchen</option>
-                    <option value="maultaschen">Geschmelzte Maultaschen (Fleisch)</option>
-                </optgroup>
-                <optgroup label="Equipment">
-                    <option value="grillstation">Grillstation</option>
-                    <option value="zelt">Zelt 3 x 3 Meter</option>
-                    <option value="klappbar">Klapp-Bar</option>
-                    <option value="fritteuse">Fritteuse</option>
-                </optgroup>
             </select>
         </div>
         <div class="form-group">
@@ -188,47 +140,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         <button class="btn btn-food" onclick="addFood()">+ Speise hinzufügen</button>
     </div>
 
-
-    <h2>3. AGB / Geschäftsbedingungen</h2>
-    <div class="section-box">
-        <div class="form-group">
-            <label>AGB anzeigen?</label>
-            <select id="agb-toggle" onchange="renderAGB()">
-                <option value="yes">Ja</option>
-                <option value="no">Nein</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Anzahlung (€)</label>
-            <input type="number" id="agb-anzahlung" value="1500.00" step="0.01" oninput="renderAGB()">
-        </div>
-        <div class="form-group">
-            <label>Anzahlung fällig bis (Datum)</label>
-            <input type="date" id="agb-anzahlung-date" oninput="renderAGB()">
-        </div>
-        <div class="form-group">
-            <label>Restbetrag: Wochen nach Event</label>
-            <input type="number" id="agb-rest-wochen" value="2" min="1" oninput="renderAGB()">
-        </div>
-        <div class="form-group">
-            <label>Restbetrag fällig bis (Datum)</label>
-            <input type="date" id="agb-rest-date" oninput="renderAGB()">
-        </div>
-        <div class="form-group">
-            <label>Verwendungszweck</label>
-            <input type="text" id="agb-verwendung" placeholder="z.B. Anzahlung Firma XY, A-023-2025" oninput="renderAGB()">
-        </div>
-    </div>
-
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
 <div class="preview-panel">
     <div id="cover-pages"></div>
     <div id="offer-pages"></div>
-
-    <!-- AGB Seiten (dynamisch) -->
-    <div id="agb-pages"></div>
 </div>
 
 <script>
@@ -242,17 +159,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", price: 8.50, desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
         salat: { title: "Bunter Pflücksalat - vegetarisch -", price: 7.50, desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
         curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" },
-        service: { title: "Servicegebühr inkl. Auf- und Abbau", price: 500.00, desc: "Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung" },
-        pommes: { title: "Portion Pommes Frites (frisch)", price: 4.50, desc: "Incl. Heinz-Ketchup / Heinz-Pommes Soße" },
-        burger: { title: "Hamburger / Cheeseburger (180 gr. Rind)", price: 9.50, desc: "Senf, Salat, Tomate, rote Zwiebeln, Jalapenos (wahlweise), Ketchup" },
-        burgermenu: { title: "Burger-Menü (Burger und Pommes)", price: 13.00, desc: "" },
-        salsiccia: { title: "Paar gegrillte Salsiccia", price: 10.00, desc: "an hausgemachtem mediterranem Kartoffelsalat" },
-        bratwurst: { title: "Bratwurst im Brötchen incl. Ketchup / Senf", price: 5.00, desc: "" },
-        maultaschen: { title: "Geschmelzte Maultaschen (Fleisch) auf buntem Pflücksalat", price: 8.50, desc: "mit Röstzwiebeln und hausgemachter Kräutervinaigrette, dazu Brotecken" },
-        grillstation: { title: "Grillstation (Tisch, Grill, Gasflasche, Reinigung)", price: 180.00, desc: "" },
-        zelt: { title: "Zelt 3 x 3 Meter", price: 50.00, desc: "" },
-        klappbar: { title: "Klapp-Bar", price: 25.00, desc: "" },
-        fritteuse: { title: "Fritteuse", price: 100.00, desc: "" }
+        service: { title: "Servicegebühr inkl. Auf- und Abbau", price: 500.00, desc: "Servicegebühr inkl. Auf- und Abbau und 3 Stunden Verköstigungszeit mit 1 Oldtimer Truck, 2 Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung" }
     };
 
     let trucks = [];
@@ -531,123 +438,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         }
     }
 
-
-    /* ==========================================================
-       renderAGB() — builds AGB pages dynamically.
-       Text blocks are inserted one by one and measured.
-       ========================================================== */
-    function renderAGB() {
-        var container = document.getElementById('agb-pages');
-        container.innerHTML = '';
-
-        if (document.getElementById('agb-toggle').value === 'no') return;
-
-        var anzahlung = parseFloat(document.getElementById('agb-anzahlung').value) || 0;
-        var anzahlungDate = document.getElementById('agb-anzahlung-date').value;
-        var restDate = document.getElementById('agb-rest-date').value;
-        var restWochen = parseInt(document.getElementById('agb-rest-wochen').value) || 2;
-        var verwendung = document.getElementById('agb-verwendung').value || '';
-
-        var anzDateStr = anzahlungDate ? anzahlungDate.split('-').reverse().join('.') : '__.__.____';
-        var restDateStr = restDate ? restDate.split('-').reverse().join('.') : '__.__.____';
-        var wochenText = restWochen === 1 ? 'eine Woche' : restWochen + ' Wochen';
-
-        var blocks = [
-            // Logo
-            '<div class="agb-content"><img src="LK_Logo_ohne_black.png" style="position:absolute;top:15mm;right:20mm;width:40mm;"></div>',
-            
-            // Überschrift
-            '<div class="agb-content"><h3 style="font-size:11pt;font-weight:bold;">Unsere allgemeinen Geschäftsbedingungen:</h3></div>',
-            
-            // Bestätigung
-            '<div class="agb-content"><p>Ich bitte Sie, diese Reservierung bis zum vorgenannten Termin <span style="text-decoration:underline;">schriftlich und verbindlich</span> zu bestätigen, damit wir diesen Termin für Sie blocken. Wenn Sie sich anders entscheiden, bitten wir ebenfalls um eine kurze Mail, so dass wir den reservierten Termin schnell wieder freigeben können. Mit Annahme dieses Angebots nehmen Sie ebenfalls die Geschäftsbedingungen an.</p></div>',
-            
-            // Zahlungsmodalitäten
-            '<div class="agb-content">' +
-                '<h3 style="font-size:10pt;font-style:italic;text-decoration:underline;margin-bottom:3mm;">Zahlungsmodalitäten:</h3>' +
-                '<ul style="list-style-type:disc;padding-left:8mm;">' +
-                    '<li><strong>' + anzahlung.toFixed(2).replace('.', ',') + ' € des <em>Gesamtbetrages</em></strong> werden mit <strong>Bestätigung</strong> der Veranstaltung <strong>sofort fällig (spätestens am ' + anzDateStr + ').</strong></li>' +
-                    '<li><strong>Der Restbetrag ist ' + wochenText + ' nach Event fällig (spätestens am ' + restDateStr + ').</strong></li>' +
-                '</ul>' +
-                '<p style="text-align:center;font-style:italic;margin:4mm 0;">' +
-                    '<em>Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>' +
-                    'Verwendungszweck: ' + (verwendung || '___') + '</em>"</p>' +
-                '<p>Die Rechnungen werden dementsprechend gestellt.</p>' +
-            '</div>',
-            
-            // Strom & Stellfläche
-            '<div class="agb-content"><p>Der Kunde verpflichtet sich die passenden Räumlichkeiten bzw. Stellfläche sowie die benötigten und besprochenen Strom (<strong>2 x 16 A = Starkstrom</strong>)- und Wasseranschlüsse (bei Bereitstellung einer Spülmaschine) für den gesamten Zeitraum bereit zu stellen; ebenso die Entsorgung des anfallenden Mülls oder dem entsprechend die Kostenübernahme zur Entsorgung (15,00 € pro Müllsack).</p></div>',
-            
-            // Stornierung
-            '<div class="agb-content">' +
-                '<p>(Auch möchten wir darauf aufmerksam machen, dass bei einer Stornierung</p>' +
-                '<ul style="list-style-type:disc;padding-left:8mm;">' +
-                    '<li>Mehr als acht Wochen vor der Veranstaltung keine Stornierungsgebühr anfällt,</li>' +
-                    '<li>Ab acht bis fünf Wochen vor der Veranstaltung eine Gebühr von 25 % des angebotenen Betrages (gerechnet an den vorgegebenen Portionen) sofort fällig ist und nicht zurückerstattet wird.</li>' +
-                    '<li>Ab vier bis zwei Wochen vor der Veranstaltung eine Gebühr von 40 % des angebotenen Betrages (gerechnet an den vorgegebenen Portionen) sofort fällig ist und nicht zurückerstattet wird.</li>' +
-                    '<li>Ab zwei Wochen vor der Veranstaltung der komplett angebotene Betrag (gerechnet an den vorgegebenen Portionen) sofort fällig ist und nicht zurückerstattet wird.</li>' +
-                '</ul>' +
-                '<p style="margin-top:3mm;">Kurzfristig abgesagte Wochenendtermine können wir in der Regel so schnell leider nicht mehr vergeben, da meist alle Termine mind. sechs bis zehn Monate im Voraus schon fest gebucht sind.</p>' +
-            '</div>',
-            
-            // Fotos
-            '<div class="agb-content"><p>Ebenfalls erklärt sich der Kunde damit einverstanden, dass im Rahmen des Events Fotos und / oder Filmaufnahmen gemacht und evtl. für Presse, Werbung oder privat veröffentlicht werden. Dem Kunden stehen hierfür keine Vergütungsansprüche zu.</p></div>',
-            
-            // Rücktritt
-            '<div class="agb-content"><p>Kann das Event aus Gründen, die von Laras Kantinchen nicht zu vertreten oder zu beeinflussen sind, nicht durchgeführt werden, so kann der Kunde seine Anzahlung selbstverständlich zurückverlangen- abzüglich des bereits von Laras Kantinchen bereits ausgeführten Arbeiten und geleisteten Aufwand für dieses Event. Ansprüche, die darüber hinausgehen, sind ausgeschlossen.</p></div>',
-            
-            // Höhere Gewalt
-            '<div class="agb-content">' +
-                '<p>Kann das Event wegen höherer Gewalt oder unerwarteter behördlicher Anordnungen nicht durchgeführt werden, oder muss vorzeitig abgebrochen oder eingeschränkt werden, so stehen dem Kunden keiner Art von Ansprüchen zu, auch nicht auf Rückerstattung der Kosten.<br>' +
-                'Als höhere Gewalt gelten dabei insbesondere Naturereignisse wie Platzregen, Hagel oder sonstige Naturkatastrophen, Einwirkung atomarer Strahlung, Streik, Brand, Maschinenschäden oder Pandemie.<br>' +
-                'Gerichtsstand ist Ludwigshafen am Rhein.</p>' +
-            '</div>',
-            
-            // Abschluss
-            '<div class="agb-content">' +
-                '<p style="margin-top:5mm;">Ich hoffe, dass unser Angebot ihren Vorstellungen entspricht und freuen uns sehr auf dieses Event.</p>' +
-                '<p style="margin-top:3mm;">Sie haben noch Fragen oder Wünsche? Bitte zögern Sie nicht, mich anzurufen.</p>' +
-                '<p style="margin-top:5mm;">Mit sonnigen Grüßen,</p>' +
-                '<p style="margin-top:3mm;"><strong>Michael Schlicksupp, Laras Kantinchen</strong></p>' +
-            '</div>'
-        ];
-
-        var currentPage, currentContent, maxY;
-
-        function createAGBPage() {
-            var page = document.createElement('div');
-            page.className = 'a4-page';
-            var content = document.createElement('div');
-            page.appendChild(content);
-            page.insertAdjacentHTML('beforeend', FOOTER_HTML);
-            container.appendChild(page);
-            var footer = page.querySelector('.document-footer');
-            maxY = footer.getBoundingClientRect().top - page.getBoundingClientRect().top - 5;
-            currentPage = page;
-            currentContent = content;
-        }
-
-        function agbContentBottom() {
-            return currentContent.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
-        }
-
-        createAGBPage();
-
-        blocks.forEach(function(html) {
-            var tmp = document.createElement('div');
-            tmp.innerHTML = html;
-            var el = tmp.firstElementChild;
-            currentContent.appendChild(el);
-            if (agbContentBottom() > maxY) {
-                currentContent.removeChild(el);
-                createAGBPage();
-                currentContent.appendChild(el);
-            }
-        });
-    }
-
     init();
-    renderAGB();
 </script>
 </body>
 </html>
