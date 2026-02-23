@@ -68,6 +68,14 @@
             display: grid; grid-template-columns: repeat(4, 1fr);
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
+        @media print {
+            .document-footer {
+                position: absolute;
+                bottom: 10mm;
+                left: 20mm;
+                right: 20mm;
+            }
+        }
         .footer-col { line-height: 1.4; }
 
         @media print {
@@ -76,9 +84,8 @@
             .a4-page {
                 box-shadow: none;
                 margin: 0;
-                width: 100%;
-                height: auto !important;
-                min-height: 0 !important;
+                width: 210mm;
+                height: 297mm;
                 overflow: visible !important;
                 page-break-after: always;
                 break-after: page;
