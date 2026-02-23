@@ -34,12 +34,12 @@
         .a4-page { 
             width: 210mm; height: 297mm; background: white; padding: 20mm; 
             box-shadow: 0 0 20px rgba(0,0,0,0.4); box-sizing: border-box; position: relative; 
-            display: flex; flex-direction: column; page-break-after: always;
+            display: flex; flex-direction: column;
             flex-shrink: 0; overflow: hidden;
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .sender-line { font-size: 7.5pt; color: #333; text-decoration: none; margin-bottom: 8mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -80,12 +80,18 @@
                 min-height: 297mm;
                 height: auto;
                 overflow: visible !important;
-                page-break-after: always;
+                page-break-after: auto;
+                break-after: auto;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .a4-page:last-child {
-                page-break-after: auto;
+            .a4-page:not(:last-child) {
+                page-break-after: always;
+                break-after: page;
+            }
+            #cover-pages .a4-page:last-child {
+                page-break-after: always;
+                break-after: page;
             }
             body { background: white; display: block; height: auto; overflow: visible; }
         }
