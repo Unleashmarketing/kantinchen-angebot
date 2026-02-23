@@ -39,7 +39,7 @@
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 8mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -87,8 +87,18 @@
             <label>Einleitungstext</label>
             <textarea id="inp-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
-vielen Dank für Ihre Anfrage. 
-Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event auf Basis einer Pro-Person-Kalkulation.
+zunächst vielen Dank für Ihre Anfrage.
+
+Bevor wir zu unserem Angebot kommen, möchte ich kurz erläutern was Pastrami ist:
+Pastrami – klingt irgendwie italienisch – kommt aber ganz woanders her.
+
+Pastrami, das ist das ultimative Delikatessen-Sandwich aus New York. Vor über 100 Jahren con Jüdischen Auswanderern in die Neue Welt mitgebracht, entwickelte sich das Pastrami Sandwich zum absoluten Liebling der USA.
+
+Bestes Rindfleisch, das in einem speziellen Verfahren über längere Zeit gepökelt und mehrere Stunden in einer Gewürzkruste geräuchert wird. Hauchdünn geschnitten, wird es üppig zwischen zwei rösche Roggenmischbrotscheiben mit verschiedenen Toppings gelegt.
+
+So wurde es zum beliebten Standard-Mittagessen – nicht nur für die Arbeiterklasse. Schnell, lecker und absolut sättigend, genauso machen wir es für Sie und bringen dieses traditionelle Sandwich in einem klassichen Citroen HY Bus, Baujahr 1970 zu Ihnen.
+
+Dazu verwenden wir qulitativ hochwertige Produkte, vorwiegend aus unserer Region.
 
 Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
@@ -106,7 +116,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
         <div class="form-group">
             <label>Zusatzstunde/Pers. (€ Brutto)</label>
-            <input type="number" id="truck-extra" value="35.00" step="0.01">
+            <input type="number" id="truck-extra" value="39.00" step="0.01">
         </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
         
@@ -228,6 +238,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+
+    function fmtEuro(n) {
+        // Format number with German locale: dot as thousands separator, comma as decimal
+        return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function updateIntro() { renderCover(); }
 
 
@@ -448,11 +464,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         trucks.forEach(function(truck) {
             addRow('<tr><td><div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>' +
                 '<div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div></td>' +
-                '<td align="center">1</td><td align="right">' + truck.service.toFixed(2) + ' €</td></tr>',
+                '<td align="center">1</td><td align="right">' + fmtEuro(truck.service) + ' €</td></tr>',
                 truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
 
             addRow('<tr><td><div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div></td>' +
-                '<td align="center"></td><td align="right">' + truck.extra.toFixed(2) + ' €</td></tr>',
+                '<td align="center"></td><td align="right">' + fmtEuro(truck.extra) + ' €</td></tr>',
                 truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
 
             truck.items.forEach(function(food) {
@@ -470,11 +486,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         
         currentTruckName = null;
         var sHead = '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Personen</th><th>Preis brutto €</th></tr>';
-        addRow('<tr class="totals-row"><td><strong>Pro-Person-Preis (' + persons + ' Personen)</strong></td><td align="center">' + persons + '</td><td align="right">' + pricePerPerson.toFixed(2) + ' €</td></tr>',
+        addRow('<tr class="totals-row"><td><strong>Pro-Person-Preis (' + persons + ' Personen)</strong></td><td align="center">' + persons + '</td><td align="right">' + fmtEuro(pricePerPerson) + ' €</td></tr>',
             '__SUMME__', 0, 'person-table', sHead, sHead);
         addRow('<tr><td colspan="3" style="border:none;height:10px;"></td></tr>',
             '__SUMME__', 0, 'person-table', sHead, sHead);
-        addRow('<tr style="font-weight:bold;font-size:10pt;"><td colspan="2"><strong>Summe aller Positionen</strong></td><td align="right">' + (totalService + (persons * pricePerPerson)).toFixed(2) + ' €</td></tr>',
+        addRow('<tr style="font-weight:bold;font-size:10pt;"><td colspan="2"><strong>Summe aller Positionen</strong></td><td align="right">' + fmtEuro(totalService + (persons * pricePerPerson)) + ' €</td></tr>',
             '__SUMME__', 0, 'person-table', sHead, sHead);
         addRow('<tr><td colspan="3" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>',
             '__SUMME__', 0, 'person-table', sHead, sHead);
@@ -482,7 +498,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         // Info box
         addElement('<div class="info-box"><strong>WICHTIGE HINWEISE:</strong><br><br>' +
             'Ich bitte Sie, bei der Angabe der Personenzahl ggfs. die Band / Musiker, Bedienung, Helfer, ... mit zu berücksichtigen.<br><br>' +
-            'Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von ' + pauschale.toFixed(2) + ' € pro Person.' +
+            'Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von ' + fmtEuro(pauschale) + ' € pro Person.' +
             '<br><br>Mindestpersonenanzahl (Vollzahler): <strong>' + minPersons + ' Personen</strong></div>');
     }
 
