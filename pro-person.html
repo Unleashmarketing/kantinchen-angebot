@@ -76,22 +76,18 @@
             .a4-page {
                 box-shadow: none;
                 margin: 0;
-                width: 210mm;
-                min-height: 297mm;
-                height: auto;
+                width: 100%;
+                height: auto !important;
+                min-height: 0 !important;
                 overflow: visible !important;
-                page-break-after: auto;
-                break-after: auto;
+                page-break-after: always;
+                break-after: page;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .a4-page:not(:last-child) {
-                page-break-after: always;
-                break-after: page;
-            }
-            #cover-pages .a4-page:last-child {
-                page-break-after: always;
-                break-after: page;
+            #offer-pages .a4-page:last-child {
+                page-break-after: auto;
+                break-after: auto;
             }
             body { background: white; display: block; height: auto; overflow: visible; }
         }
