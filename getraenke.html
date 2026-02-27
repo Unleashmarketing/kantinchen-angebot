@@ -44,7 +44,7 @@
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 8mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -99,7 +99,18 @@
     <div class="section-box">
         <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
-vielen Dank für Ihre Anfrage. Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
+zunächst vielen Dank für Ihre Anfrage.
+
+Bevor wir zu unserem Angebot kommen, möchte ich kurz erläutern was Pastrami ist:
+Pastrami – klingt irgendwie italienisch – kommt aber ganz woanders her.
+
+Pastrami, das ist das ultimative Delikatessen-Sandwich aus New York. Vor über 100 Jahren con Jüdischen Auswanderern in die Neue Welt mitgebracht, entwickelte sich das Pastrami Sandwich zum absoluten Liebling der USA.
+
+Bestes Rindfleisch, das in einem speziellen Verfahren über längere Zeit gepökelt und mehrere Stunden in einer Gewürzkruste geräuchert wird. Hauchdünn geschnitten, wird es üppig zwischen zwei rösche Roggenmischbrotscheiben mit verschiedenen Toppings gelegt.
+
+So wurde es zum beliebten Standard-Mittagessen – nicht nur für die Arbeiterklasse. Schnell, lecker und absolut sättigend, genauso machen wir es für Sie und bringen dieses traditionelle Sandwich in einem klassichen Citroen HY Bus, Baujahr 1970 zu Ihnen.
+
+Dazu verwenden wir qulitativ hochwertige Produkte, vorwiegend aus unserer Region.
 
 Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
@@ -250,6 +261,12 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+
+    function fmtEuro(n) {
+        // Format number with German locale: dot as thousands separator, comma as decimal
+        return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function updateIntro() { renderCover(); }
 
     /* ==========================================================
@@ -491,18 +508,18 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
             addRow('<tr>' +
                 '<td colspan="2"><div class="drink-title">Servicegebühr inkl. Auf- und Abbau</div>' +
                 '<div class="drink-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Leihgebühr, Fahrtkosten und Reinigung</div></td>' +
-                '<td align="right">' + stand.service.toFixed(2) + ' €</td></tr>',
+                '<td align="right">' + fmtEuro(stand.service) + ' €</td></tr>',
                 stand.name, stand.id);
 
             // Getränke
             stand.items.forEach(function(drink) {
-                const pfand = drink.pfand > 0 ? '<br><span style="font-size:7.5pt;color:#666;">zzgl. ' + drink.pfand.toFixed(2) + ' € Pfand</span>' : '';
+                const pfand = drink.pfand > 0 ? '<br><span style="font-size:7.5pt;color:#666;">zzgl. ' + fmtEuro(drink.pfand) + ' € Pfand</span>' : '';
                 addRow('<tr>' +
                     '<td class="col-drink"><div class="drink-title">' + drink.title + (drink.size ? ' ' + drink.size : '') + '</div>' +
                     (drink.desc ? '<div class="drink-desc">' + drink.desc + '</div>' : '') +
                     '<span class="delete-overlay no-print" onclick="removeDrink(' + stand.id + ',' + drink.id + ')">[Löschen]</span></td>' +
                     '<td align="center" class="col-size">' + drink.size + '</td>' +
-                    '<td align="right" class="col-price">' + drink.price.toFixed(2) + ' €' + pfand + '</td></tr>',
+                    '<td align="right" class="col-price">' + fmtEuro(drink.price) + ' €' + pfand + '</td></tr>',
                     stand.name, stand.id);
             });
         });
@@ -516,8 +533,8 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         if (minUmsatz > 0 || perPerson > 0) {
             let text = '<strong>' + customText.split('\n')[0] + '</strong><br><br>';
             if (minPersons > 0) text += 'Bei mind. ' + minPersons + ' Gästen – ';
-            if (perPerson > 0) text += perPerson.toFixed(2) + ' € pro Person für Getränke';
-            if (minUmsatz > 0) text += ' (Gesamt: ' + minUmsatz.toFixed(2) + ' €)';
+            if (perPerson > 0) text += fmtEuro(perPerson) + ' € pro Person für Getränke';
+            if (minUmsatz > 0) text += ' (Gesamt: ' + fmtEuro(minUmsatz) + ' €)';
             text += ' zzgl. der Leihgebühren.<br><br>';
             const lines = customText.split('\n');
             for (let i = 1; i < lines.length; i++) {
