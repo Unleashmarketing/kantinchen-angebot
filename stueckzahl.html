@@ -39,7 +39,7 @@
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #777; text-decoration: underline; margin-bottom: 8mm; }
+        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 8mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 30mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -84,7 +84,18 @@
     <div class="section-box">
         <textarea id="edit-intro" rows="6" oninput="updateIntro()">Sehr geehrte Damen und Herren,
 
-vielen Dank für Ihre Anfrage. Anbei übersenden wir Ihnen die ausgearbeiteten Vorschläge für Ihr Event.
+zunächst vielen Dank für Ihre Anfrage.
+
+Bevor wir zu unserem Angebot kommen, möchte ich kurz erläutern was Pastrami ist:
+Pastrami – klingt irgendwie italienisch – kommt aber ganz woanders her.
+
+Pastrami, das ist das ultimative Delikatessen-Sandwich aus New York. Vor über 100 Jahren con Jüdischen Auswanderern in die Neue Welt mitgebracht, entwickelte sich das Pastrami Sandwich zum absoluten Liebling der USA.
+
+Bestes Rindfleisch, das in einem speziellen Verfahren über längere Zeit gepökelt und mehrere Stunden in einer Gewürzkruste geräuchert wird. Hauchdünn geschnitten, wird es üppig zwischen zwei rösche Roggenmischbrotscheiben mit verschiedenen Toppings gelegt.
+
+So wurde es zum beliebten Standard-Mittagessen – nicht nur für die Arbeiterklasse. Schnell, lecker und absolut sättigend, genauso machen wir es für Sie und bringen dieses traditionelle Sandwich in einem klassichen Citroen HY Bus, Baujahr 1970 zu Ihnen.
+
+Dazu verwenden wir qulitativ hochwertige Produkte, vorwiegend aus unserer Region.
 
 Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
@@ -211,6 +222,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
+
+    function fmtEuro(n) {
+        // Format number with German locale: dot as thousands separator, comma as decimal
+        return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function updateIntro() { renderCover(); }
 
 
@@ -435,14 +452,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 sN += tN; sB += tB;
                 addRow('<tr><td><div class="product-title">' + f.title + '</div><div class="product-desc">' + f.desc + '</div>' +
                     '<span class="delete-overlay no-print" onclick="removeFood(' + t.id + ',' + f.id + ')">[Löschen]</span></td>' +
-                    '<td align="center">' + f.qty + '</td><td align="right">' + f.ne.toFixed(2) + '</td><td align="right">' + f.br.toFixed(2) + '</td>' +
-                    '<td align="right">' + tN.toFixed(2) + '</td><td align="right">' + tB.toFixed(2) + '</td></tr>',
+                    '<td align="center">' + f.qty + '</td><td align="right">' + fmtEuro(f.ne) + '</td><td align="right">' + fmtEuro(f.br) + '</td>' +
+                    '<td align="right">' + fmtEuro(tN) + '</td><td align="right">' + fmtEuro(tB) + '</td></tr>',
                     t.name, t.id, 'truck-table', truckTheadHTML(t.name, t.id), truckContTheadHTML(t.name));
             });
 
             // Totals row for this truck
             addRow('<tr class="totals-row"><td colspan="4"><strong>Summe ' + t.name + '</strong></td>' +
-                '<td align="right"><strong>' + sN.toFixed(2) + '</strong></td><td align="right"><strong>' + sB.toFixed(2) + '</strong></td></tr>',
+                '<td align="right"><strong>' + fmtEuro(sN) + '</strong></td><td align="right"><strong>' + fmtEuro(sB) + '</strong></td></tr>',
                 t.name, t.id, 'truck-table', truckTheadHTML(t.name, t.id), truckContTheadHTML(t.name));
         });
 
@@ -455,7 +472,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             currentTruckName = null;
             var gHead = '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Portionen</th><th>Einzel € netto</th><th>Einzel € brutto</th><th>Gesamt € netto</th><th>Gesamt € brutto</th></tr>';
             addRow('<tr style="font-weight:bold;font-size:10pt;background:#fdfaf9;"><td colspan="4"><strong>GESAMTSUMME ALLER TRUCKS</strong></td>' +
-                '<td align="right"><strong>' + totalN.toFixed(2) + ' €</strong></td><td align="right"><strong>' + totalB.toFixed(2) + ' €</strong></td></tr>',
+                '<td align="right"><strong>' + fmtEuro(totalN) + ' €</strong></td><td align="right"><strong>' + fmtEuro(totalB) + ' €</strong></td></tr>',
                 '__GESAMT__', 0, 'truck-table', gHead, gHead);
             addRow('<tr><td colspan="6" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>',
                 '__GESAMT__', 0, 'truck-table', gHead, gHead);
