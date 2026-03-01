@@ -186,6 +186,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
+    <h2>4. Zahlungsmodalitäten</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Fällig nach Event (Tage)</label>
+            <input type="number" id="zahlung-tage" value="10" min="1" oninput="render()">
+        </div>
+    </div>
+
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
@@ -196,12 +204,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
 <script>
     var presets = {
-        ps_sally: { title: "Pastrami Sandwich Sally", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
-        ps_harry: { title: "Pastrami Sandwich Harry", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
-        ps_maxi: { title: "Pastrami Sandwich Maxi", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
-        pb_sally: { title: "Pastrami Bowl Sally", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
-        pb_harry: { title: "Pastrami Bowl Harry", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
-        pb_maxi: { title: "Pastrami Bowl Maxi", desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        ps_sally: { title: "Pastrami Sandwich Sally", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken, knackigem Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
+        ps_harry: { title: "Pastrami Sandwich Harry", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
+        ps_maxi: { title: "Pastrami Sandwich Maxi", desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken, knackigem Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
+        pb_sally: { title: "Pastrami Bowl Sally", desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen, darüber hausgemachte Cocktailsoße, Röstzwiebeln, geschmolzener Cheddar und frische Kräuter dazu geröstete Brotecken" },
+        pb_harry: { title: "Pastrami Bowl Harry", desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen und hausgemachtem Krautsalat" },
+        pb_maxi: { title: "Pastrami Bowl Maxi", desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen, darüber hausgemachte Cocktailsoße, Röstzwiebeln, geschmolzener Cheddar und ein doppelseitig gebratenes Spiegelei und frische Kräuter dazu geröstete Brotecken" },
         spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
         salat: { title: "Bunter Pflücksalat - vegetarisch -", desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
         curry: { title: "Veganes Linsen-Curry (pikant)", desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" },
@@ -500,6 +508,10 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             'Ich bitte Sie, bei der Angabe der Personenzahl ggfs. die Band / Musiker, Bedienung, Helfer, ... mit zu berücksichtigen.<br><br>' +
             'Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von ' + fmtEuro(pauschale) + ' € pro Person.' +
             '<br><br>Mindestpersonenanzahl (Vollzahler): <strong>' + minPersons + ' Personen</strong></div>');
+
+        // Zahlungshinweis
+        var zahlungTage = parseInt(document.getElementById('zahlung-tage').value) || 10;
+        addElement('<div style="margin-top:8px;padding:10px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;font-weight:bold;color:#1a5276;">Der evtl. Ausgleichsbetrag ist innerhalb ' + zahlungTage + ' Tagen nach Event ohne Abzug fällig.</div>');
     }
 
     init();
