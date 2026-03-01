@@ -522,16 +522,17 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
         var mTheadHTML = '<tr><th colspan="4">MINDESTABNAHME</th></tr>' +
             '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Portionen</th><th>Einzelpreis brutto</th><th>Gesamtpreis brutto</th></tr>';
+        var mTheadContHTML = '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Portionen</th><th>Einzelpreis brutto</th><th>Gesamtpreis brutto</th></tr>';
         
         currentTruckName = null;
         addRow('<tr class="totals-row"><td><strong>Mindestabnahme-Menge</strong></td><td align="center">' + qty + '</td><td align="right">' + fmtEuro(price) + ' €</td><td align="right">' + fmtEuro(minTotal) + ' €</td></tr>',
-            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadHTML);
+            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadContHTML);
         addRow('<tr><td colspan="4" style="border:none;height:10px;"></td></tr>',
-            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadHTML);
+            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadContHTML);
         addRow('<tr style="font-weight:bold;font-size:10pt;"><td colspan="3"><strong>Summe aller Positionen</strong></td><td align="right">' + fmtEuro(grandTotal) + ' €</td></tr>',
-            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadHTML);
+            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadContHTML);
         addRow('<tr><td colspan="4" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>',
-            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadHTML);
+            '__MINDEST__', 0, 'mindest-table', mTheadHTML, mTheadContHTML);
 
         // Zahlungshinweis
         var zahlungTage = parseInt(document.getElementById('zahlung-tage').value) || 7;
