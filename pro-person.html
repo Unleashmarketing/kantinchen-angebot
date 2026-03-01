@@ -488,20 +488,29 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             });
         });
 
-        // Summary table
+        // Summary table — built as one atomic block to avoid page breaks inside it
         var totalService = 0;
         trucks.forEach(function(t) { totalService += t.service; });
-        
-        currentTruckName = null;
-        var sHead = '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Personen</th><th>Preis brutto €</th></tr>';
-        addRow('<tr class="totals-row"><td><strong>Pro-Person-Preis (' + persons + ' Personen)</strong></td><td align="center">' + persons + '</td><td align="right">' + fmtEuro(pricePerPerson) + ' €</td></tr>',
-            '__SUMME__', 0, 'person-table', sHead, sHead);
-        addRow('<tr><td colspan="3" style="border:none;height:10px;"></td></tr>',
-            '__SUMME__', 0, 'person-table', sHead, sHead);
-        addRow('<tr style="font-weight:bold;font-size:10pt;"><td colspan="2"><strong>Summe aller Positionen</strong></td><td align="right">' + fmtEuro(totalService + (persons * pricePerPerson)) + ' €</td></tr>',
-            '__SUMME__', 0, 'person-table', sHead, sHead);
-        addRow('<tr><td colspan="3" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>',
-            '__SUMME__', 0, 'person-table', sHead, sHead);
+
+        var summeBlock = document.createElement('div');
+        summeBlock.innerHTML =
+            '<table class="person-table">' +
+                '<thead>' +
+                    '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Personen</th><th>Preis brutto \u20AC</th></tr>' +
+                '</thead>' +
+                '<tbody>' +
+                    '<tr class="totals-row"><td><strong>Pro-Person-Preis (' + persons + ' Personen)</strong></td><td align="center">' + persons + '</td><td align="right">' + fmtEuro(pricePerPerson) + ' \u20AC</td></tr>' +
+                    '<tr><td colspan="3" style="border:none;height:10px;"></td></tr>' +
+                    '<tr style="font-weight:bold;font-size:10pt;"><td colspan="2"><strong>Summe aller Positionen</strong></td><td align="right">' + fmtEuro(totalService + (persons * pricePerPerson)) + ' \u20AC</td></tr>' +
+                    '<tr><td colspan="3" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>' +
+                '</tbody>' +
+            '</table>';
+        currentContent.appendChild(summeBlock);
+        if (currentContent.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top > maxY) {
+            currentContent.removeChild(summeBlock);
+            createPage();
+            currentContent.appendChild(summeBlock);
+        }
 
         // Info box
         addElement('<div class="info-box"><strong>WICHTIGE HINWEISE:</strong><br><br>' +
