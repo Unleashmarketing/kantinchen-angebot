@@ -165,6 +165,26 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         <button class="btn btn-food" onclick="addFood()">+ Speise hinzufügen</button>
     </div>
 
+    <h2>3. Zahlungsmodalitäten</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Anzahlung (€)</label>
+            <input type="number" id="zahlung-anzahlung" value="0" step="0.01" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Fällig spätestens am (Anzahlung)</label>
+            <input type="date" id="zahlung-datum1" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Restbetrag fällig spätestens am</label>
+            <input type="date" id="zahlung-datum2" oninput="render()">
+        </div>
+        <div class="form-group">
+            <label>Verwendungszweck</label>
+            <input type="text" id="zahlung-zweck" placeholder="z.B. Angebot A-015-2026" oninput="render()">
+        </div>
+    </div>
+
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
 </div>
 
@@ -175,12 +195,12 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
 <script>
     var presets = {
-        ps_sally: { title: "Pastrami Sandwich Sally", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
-        ps_harry: { title: "Pastrami Sandwich Harry", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
-        ps_maxi: { title: "Pastrami Sandwich Maxi", price: 9.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrot mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
-        pb_sally: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße und Cheddar" },
-        pb_harry: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken und hausgemachtem Krautsalat" },
-        pb_maxi: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf Salat mit mildem Senf, Gurken, Salat, Röstzwiebeln, Cocktailsoße, Cheddar und Spiegelei" },
+        ps_sally: { title: "Pastrami Sandwich Sally", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken, knackigem Salat, Röstzwiebeln, hausgemachter Cocktailsoße und geschmolzenem Cheddar" },
+        ps_harry: { title: "Pastrami Sandwich Harry", price: 8.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken und hausgemachtem Krautsalat" },
+        ps_maxi: { title: "Pastrami Sandwich Maxi", price: 9.50, desc: "Gegrillte Pastrami zwischen 2 gerösteten Roggenmischbrotscheiben mit mildem Senf, Sandwichgurken, knackigem Salat, Röstzwiebeln, hausgemachter Cocktailsoße, geschmolzenem Cheddar und ein doppelseitig gebratenes Spiegelei" },
+        pb_sally: { title: "Pastrami Bowl Sally", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen, darüber hausgemachte Cocktailsoße, Röstzwiebeln, geschmolzener Cheddar und frische Kräuter dazu geröstete Brotecken" },
+        pb_harry: { title: "Pastrami Bowl Harry", price: 8.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen und hausgemachtem Krautsalat" },
+        pb_maxi: { title: "Pastrami Bowl Maxi", price: 9.50, desc: "Gegrillte Pastrami auf knackigem Salat mit mildem Senf, Sandwichgurken-Schnitzen, darüber hausgemachte Cocktailsoße, Röstzwiebeln, geschmolzener Cheddar und ein doppelseitig gebratenes Spiegelei und frische Kräuter dazu geröstete Brotecken" },
         spaetzle: { title: "Käsespätzle mit Original Bergkäse-Mischung", price: 8.50, desc: "mit Röstzwiebeln, frischen Kräutern an Salatbouquet" },
         salat: { title: "Bunter Pflücksalat - vegetarisch -", price: 7.50, desc: "mit frischer Wassermelone unter Hirtenkäse-Streusel an Kräutervinaigrette dazu geröstete Brotecken" },
         curry: { title: "Veganes Linsen-Curry (pikant)", price: 8.50, desc: "mit frischem Koriander, gerösteten Cashew-Kernen und Limette an Basmatireis" },
@@ -477,6 +497,22 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             addRow('<tr><td colspan="6" style="border:none;font-size:7.5pt;color:#666;padding-top:10px;">Preise inkl. der gesetzl. Umsatzsteuer</td></tr>',
                 '__GESAMT__', 0, 'truck-table', gHead, gHead);
         }
+
+        // Zahlungshinweis Stückzahl
+        var anzahlung = parseFloat(document.getElementById('zahlung-anzahlung').value) || 0;
+        var datum1Raw = document.getElementById('zahlung-datum1').value;
+        var datum2Raw = document.getElementById('zahlung-datum2').value;
+        var zweck = document.getElementById('zahlung-zweck').value || '';
+        function fmtD(iso) { return iso ? iso.split('-').reverse().join('.') : 'tt.mm.jjjj'; }
+        var d1 = fmtD(datum1Raw);
+        var d2 = fmtD(datum2Raw);
+        var zahlungHTML = '<div style="margin-top:8px;padding:12px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;">' +
+            '<strong>Zahlungsmodalitäten:</strong><br><br>' +
+            '&#x2022;&nbsp;<strong>' + fmtEuro(anzahlung) + ' €</strong> des Gesamtbetrages werden mit Bestätigung der Veranstaltung sofort fällig (spätestens am ' + d1 + ').<br><br>' +
+            '&#x2022;&nbsp;Der Restbetrag ist zwei Wochen nach Event fällig (spätestens am ' + d2 + ').<br><br>' +
+            '<span style="font-size:8.5pt;">Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>Verwendungszweck: ' + zweck + '</span>' +
+            '</div>';
+        addElement(zahlungHTML);
     }
 
     init();
