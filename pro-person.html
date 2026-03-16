@@ -30,6 +30,17 @@
         .btn-food { background: var(--accent-orange); margin-top: 10px; }
         .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
 
+        /* Toggle-Buttons für Servicegebühren */
+        .service-toggles { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .service-toggle-item { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 8px 10px; font-size: 12px; }
+        .service-toggle-item .stitle { font-weight: 600; color: #444; flex: 1; }
+        .toggle-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1; }
+        .toggle-btn.add { color: #27ae60; }
+        .toggle-btn.remove { color: #c0392b; }
+        .truck-service-block { border: 1px solid #e0d0cc; border-radius: 6px; padding: 10px; margin-bottom: 10px; background: #fff; }
+        .truck-service-block .tsb-name { font-weight: bold; font-size: 12px; color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .tsb-remove-truck { color: #c0392b; cursor: pointer; font-size: 11px; text-decoration: underline; background: none; border: none; }
+
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
             width: 210mm; height: 297mm; background: white; padding: 20mm; 
@@ -69,6 +80,8 @@
             font-size: 7pt; color: #333; border-top: 0.5px solid #ccc; padding-top: 5px;
         }
         .footer-col { line-height: 1.4; }
+
+        .hinweis-hint { font-size: 10px; color: #888; margin-top: 4px; font-style: italic; }
 
         @media print {
             .editor-panel, .delete-overlay, .no-print { display: none !important; }
@@ -120,6 +133,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
         <button class="btn btn-truck" onclick="addTruck()">+ Truck hinzufügen</button>
         
+        <div id="truck-service-controls" style="margin-top:14px;"></div>
+
         <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
         
         <div class="form-group">
@@ -186,7 +201,20 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         </div>
     </div>
 
-    <h2>4. Zahlungsmodalitäten</h2>
+    <h2>4. Wichtige Hinweise</h2>
+    <div class="section-box">
+        <div class="form-group">
+            <label>Hinweistext</label>
+            <textarea id="inp-hinweise" rows="7" oninput="render()">Ich bitte Sie, bei der Angabe der Personenzahl ggfs. die Band / Musiker, Bedienung, Helfer, ... mit zu berücksichtigen.
+
+Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von {PAUSCHALE} pro Person.
+
+Mindestpersonenanzahl (Vollzahler): {MINDEST_PERSONEN}</textarea>
+            <div class="hinweis-hint">Verfügbare Variablen: <strong>{PAUSCHALE}</strong> · <strong>{MINDEST_PERSONEN}</strong></div>
+        </div>
+    </div>
+
+    <h2>5. Zahlungsmodalitäten</h2>
     <div class="section-box">
         <div class="form-group">
             <label>Fällig nach Event (Tage)</label>
@@ -248,18 +276,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
 
     function fmtEuro(n) {
-        // Format number with German locale: dot as thousands separator, comma as decimal
         return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function updateIntro() { renderCover(); }
 
-
     /* ==========================================================
        renderCover() — builds cover page(s) dynamically.
-       Intro text is inserted paragraph by paragraph and measured.
-       If it overflows, a continuation page is created.
-       ========================================================== */
+    ========================================================== */
     function renderCover() {
         var container = document.getElementById('cover-pages');
         container.innerHTML = '';
@@ -329,7 +353,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         }
     }
 
-
     function loadPreset() {
         var key = document.getElementById('food-presets').value;
         if(presets[key]) {
@@ -342,14 +365,64 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         var name = document.getElementById('truck-name').value || "Truck " + (trucks.length + 1);
         var service = parseFloat(document.getElementById('truck-service').value) || 0;
         var extra = parseFloat(document.getElementById('truck-extra').value) || 0;
-        trucks.push({ id: Date.now(), name: name.toUpperCase(), service: service, extra: extra, items: [] });
+        trucks.push({ 
+            id: Date.now(), 
+            name: name.toUpperCase(), 
+            service: service, 
+            extra: extra, 
+            items: [],
+            showService: true,   // Servicegebühr inkl. Auf- und Abbau
+            showExtra: true      // Servicegebühr für jede weitere Stunde
+        });
         updateTruckList();
+        renderTruckServiceControls();
         render();
     }
 
     function updateTruckList() {
         var sel = document.getElementById('food-target');
         sel.innerHTML = trucks.map(function(t) { return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('');
+    }
+
+    /* Rendert die Servicegebühr-Toggle-Controls im Panel */
+    function renderTruckServiceControls() {
+        var container = document.getElementById('truck-service-controls');
+        if (trucks.length === 0) { container.innerHTML = ''; return; }
+
+        var html = '<div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:8px;">Servicegebühren pro Truck</div>';
+        trucks.forEach(function(truck) {
+            html += '<div class="truck-service-block">';
+            html += '<div class="tsb-name">' + truck.name + 
+                    '<button class="tsb-remove-truck" onclick="removeTruck(' + truck.id + ')">Truck entfernen</button></div>';
+            html += '<div class="service-toggles">';
+            // Row 1: Servicegebühr inkl. Auf- und Abbau
+            html += '<div class="service-toggle-item">' +
+                '<span class="stitle">Servicegebühr (Auf-/Abbau)</span>' +
+                (truck.showService
+                    ? '<button class="toggle-btn remove" title="Entfernen" onclick="toggleService(' + truck.id + ',\'service\',false)">✕</button>'
+                    : '<button class="toggle-btn add" title="Hinzufügen" onclick="toggleService(' + truck.id + ',\'service\',true)">＋</button>'
+                ) +
+            '</div>';
+            // Row 2: Servicegebühr jede weitere Stunde
+            html += '<div class="service-toggle-item">' +
+                '<span class="stitle">Zusatzstunde / Personal</span>' +
+                (truck.showExtra
+                    ? '<button class="toggle-btn remove" title="Entfernen" onclick="toggleService(' + truck.id + ',\'extra\',false)">✕</button>'
+                    : '<button class="toggle-btn add" title="Hinzufügen" onclick="toggleService(' + truck.id + ',\'extra\',true)">＋</button>'
+                ) +
+            '</div>';
+            html += '</div></div>';
+        });
+        container.innerHTML = html;
+    }
+
+    function toggleService(id, key, val) {
+        var truck = trucks.find(function(t) { return t.id == id; });
+        if (!truck) return;
+        if (key === 'service') truck.showService = val;
+        if (key === 'extra') truck.showExtra = val;
+        renderTruckServiceControls();
+        render();
     }
 
     function addFood() {
@@ -373,7 +446,16 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function removeTruck(id) {
         trucks = trucks.filter(function(t) { return t.id !== id; });
         updateTruckList();
+        renderTruckServiceControls();
         render();
+    }
+
+    /* Ersetzt Variablen im Hinweis-Text */
+    function resolveHinweisText(pauschale, minPersons) {
+        var raw = document.getElementById('inp-hinweise').value;
+        return raw
+            .replace(/\{PAUSCHALE\}/g, fmtEuro(pauschale) + ' €')
+            .replace(/\{MINDEST_PERSONEN\}/g, minPersons + ' Personen');
     }
 
     function render() {
@@ -459,7 +541,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         }
 
         function truckTheadHTML(name, id) {
-            return '<tr><th colspan="3">' + name + ' <span class="no-print" style="font-size:8pt;cursor:pointer;" onclick="removeTruck(' + id + ')"> (Truck entfernen)</span></th></tr>' +
+            return '<tr><th colspan="3">' + name + '</th></tr>' +
                 '<tr style="background:#fff;color:#333;font-size:8pt;"><th>Bezeichnung</th><th>Personen</th><th>Preis brutto €</th></tr>';
         }
         function truckContTheadHTML(name) {
@@ -470,14 +552,25 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         createPage();
 
         trucks.forEach(function(truck) {
-            addRow('<tr><td><div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>' +
-                '<div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div></td>' +
-                '<td align="center">1</td><td align="right">' + fmtEuro(truck.service) + ' €</td></tr>',
-                truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
+            // Servicegebühr inkl. Auf- und Abbau — nur wenn aktiviert
+            if (truck.showService) {
+                addRow('<tr><td><div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>' +
+                    '<div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div></td>' +
+                    '<td align="center">1</td><td align="right">' + fmtEuro(truck.service) + ' €</td></tr>',
+                    truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
+            }
 
-            addRow('<tr><td><div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div></td>' +
-                '<td align="center"></td><td align="right">' + fmtEuro(truck.extra) + ' €</td></tr>',
-                truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
+            // Servicegebühr jede weitere Stunde — nur wenn aktiviert
+            if (truck.showExtra) {
+                addRow('<tr><td><div class="product-title">Servicegebühr für jede weitere Stunde / Personal</div></td>' +
+                    '<td align="center"></td><td align="right">' + fmtEuro(truck.extra) + ' €</td></tr>',
+                    truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
+            }
+
+            // Falls beide deaktiviert: trotzdem Truck-Header zeigen (wegen Speisen)
+            if (!truck.showService && !truck.showExtra && truck.name !== currentTruckName) {
+                startTable(truck.name, truck.id, false, 'person-table', truckTheadHTML(truck.name, truck.id));
+            }
 
             truck.items.forEach(function(food) {
                 addRow('<tr><td><div class="product-title">' + food.title + '</div>' +
@@ -488,9 +581,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             });
         });
 
-        // Summary table — built as one atomic block to avoid page breaks inside it
+        // Summary table
         var totalService = 0;
-        trucks.forEach(function(t) { totalService += t.service; });
+        trucks.forEach(function(t) { 
+            if (t.showService) totalService += t.service; 
+        });
 
         var summeBlock = document.createElement('div');
         summeBlock.innerHTML =
@@ -512,11 +607,14 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             currentContent.appendChild(summeBlock);
         }
 
-        // Info box
-        addElement('<div class="info-box"><strong>WICHTIGE HINWEISE:</strong><br><br>' +
-            'Ich bitte Sie, bei der Angabe der Personenzahl ggfs. die Band / Musiker, Bedienung, Helfer, ... mit zu berücksichtigen.<br><br>' +
-            'Für die Band / Musiker, Bedienung, Helfer, ... berechnen wir eine Essens-Pauschale von ' + fmtEuro(pauschale) + ' € pro Person.' +
-            '<br><br>Mindestpersonenanzahl (Vollzahler): <strong>' + minPersons + ' Personen</strong></div>');
+        // Info box — mit aufgelöstem Hinweis-Text
+        var hinweisText = resolveHinweisText(pauschale, minPersons);
+        var hinweisHtml = hinweisText
+            .split('\n')
+            .map(function(line) { return line.trim() === '' ? '<br>' : line; })
+            .join('<br>');
+
+        addElement('<div class="info-box"><strong>WICHTIGE HINWEISE:</strong><br><br>' + hinweisHtml + '</div>');
 
         // Zahlungshinweis
         var zahlungTage = parseInt(document.getElementById('zahlung-tage').value) || 10;
