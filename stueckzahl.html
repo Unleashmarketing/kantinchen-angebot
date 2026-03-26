@@ -30,6 +30,52 @@
         .btn-food { background: var(--accent-orange); margin-top: 10px; }
         .btn-print { background: #27ae60; margin-top: 30px; font-size: 16px; }
 
+        /* Toggle Switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0d8d4;
+        }
+        .toggle-row span {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            border-radius: 22px;
+            transition: background-color 0.2s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--primary-color); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* Disabled fields styling */
+        .zahlung-fields { transition: opacity 0.2s; }
+        .zahlung-fields.disabled { opacity: 0.35; pointer-events: none; }
+
         .preview-panel { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
         .a4-page { 
             width: 210mm; height: 297mm; background: white; padding: 20mm; 
@@ -167,21 +213,33 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
     <h2>3. Zahlungsmodalitäten</h2>
     <div class="section-box">
-        <div class="form-group">
-            <label>Anzahlung (€)</label>
-            <input type="number" id="zahlung-anzahlung" value="0" step="0.01" oninput="render()">
+        <!-- Toggle -->
+        <div class="toggle-row">
+            <span>Im Angebot anzeigen</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="zahlung-toggle" checked onchange="toggleZahlung()">
+                <span class="toggle-slider"></span>
+            </label>
         </div>
-        <div class="form-group">
-            <label>Fällig spätestens am (Anzahlung)</label>
-            <input type="date" id="zahlung-datum1" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Restbetrag fällig spätestens am</label>
-            <input type="date" id="zahlung-datum2" oninput="render()">
-        </div>
-        <div class="form-group">
-            <label>Verwendungszweck</label>
-            <input type="text" id="zahlung-zweck" placeholder="z.B. Angebot A-015-2026" oninput="render()">
+
+        <!-- Felder (werden bei Toggle deaktiviert) -->
+        <div class="zahlung-fields" id="zahlung-fields">
+            <div class="form-group">
+                <label>Anzahlung (€)</label>
+                <input type="number" id="zahlung-anzahlung" value="0" step="0.01" oninput="render()">
+            </div>
+            <div class="form-group">
+                <label>Fällig spätestens am (Anzahlung)</label>
+                <input type="date" id="zahlung-datum1" oninput="render()">
+            </div>
+            <div class="form-group">
+                <label>Restbetrag fällig spätestens am</label>
+                <input type="date" id="zahlung-datum2" oninput="render()">
+            </div>
+            <div class="form-group">
+                <label>Verwendungszweck</label>
+                <input type="text" id="zahlung-zweck" placeholder="z.B. Angebot A-015-2026" oninput="render()">
+            </div>
         </div>
     </div>
 
@@ -226,6 +284,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
     '</div>';
 
+    function toggleZahlung() {
+        var enabled = document.getElementById('zahlung-toggle').checked;
+        var fields = document.getElementById('zahlung-fields');
+        fields.classList.toggle('disabled', !enabled);
+        render();
+    }
+
     function init() {
         var p = new URLSearchParams(window.location.search);
         if(p.get('recipient')) {
@@ -244,18 +309,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
 
     function fmtEuro(n) {
-        // Format number with German locale: dot as thousands separator, comma as decimal
         return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function updateIntro() { renderCover(); }
 
-
-    /* ==========================================================
-       renderCover() — builds cover page(s) dynamically.
-       Intro text is inserted paragraph by paragraph and measured.
-       If it overflows, a continuation page is created.
-       ========================================================== */
     function renderCover() {
         var container = document.getElementById('cover-pages');
         container.innerHTML = '';
@@ -324,7 +382,6 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             });
         }
     }
-
 
     function loadPreset() {
         var key = document.getElementById('food-presets').value;
@@ -477,13 +534,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     t.name, t.id, 'truck-table', truckTheadHTML(t.name, t.id), truckContTheadHTML(t.name));
             });
 
-            // Totals row for this truck
             addRow('<tr class="totals-row"><td colspan="4"><strong>Summe ' + t.name + '</strong></td>' +
                 '<td align="right"><strong>' + fmtEuro(sN) + '</strong></td><td align="right"><strong>' + fmtEuro(sB) + '</strong></td></tr>',
                 t.name, t.id, 'truck-table', truckTheadHTML(t.name, t.id), truckContTheadHTML(t.name));
         });
 
-        // Grand total across all trucks
         if (trucks.length > 1) {
             var totalN = 0, totalB = 0;
             trucks.forEach(function(t) {
@@ -498,21 +553,24 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 '__GESAMT__', 0, 'truck-table', gHead, gHead);
         }
 
-        // Zahlungshinweis Stückzahl
-        var anzahlung = parseFloat(document.getElementById('zahlung-anzahlung').value) || 0;
-        var datum1Raw = document.getElementById('zahlung-datum1').value;
-        var datum2Raw = document.getElementById('zahlung-datum2').value;
-        var zweck = document.getElementById('zahlung-zweck').value || '';
-        function fmtD(iso) { return iso ? iso.split('-').reverse().join('.') : 'tt.mm.jjjj'; }
-        var d1 = fmtD(datum1Raw);
-        var d2 = fmtD(datum2Raw);
-        var zahlungHTML = '<div style="margin-top:8px;padding:12px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;">' +
-            '<strong>Zahlungsmodalitäten:</strong><br><br>' +
-            '&#x2022;&nbsp;<strong>' + fmtEuro(anzahlung) + ' €</strong> des Gesamtbetrages werden mit Bestätigung der Veranstaltung sofort fällig (spätestens am ' + d1 + ').<br><br>' +
-            '&#x2022;&nbsp;Der Restbetrag ist zwei Wochen nach Event fällig (spätestens am ' + d2 + ').<br><br>' +
-            '<span style="font-size:8.5pt;">Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>Verwendungszweck: ' + zweck + '</span>' +
-            '</div>';
-        addElement(zahlungHTML);
+        // Zahlungsblock nur wenn Toggle aktiv
+        var zahlungAktiv = document.getElementById('zahlung-toggle').checked;
+        if (zahlungAktiv) {
+            var anzahlung = parseFloat(document.getElementById('zahlung-anzahlung').value) || 0;
+            var datum1Raw = document.getElementById('zahlung-datum1').value;
+            var datum2Raw = document.getElementById('zahlung-datum2').value;
+            var zweck = document.getElementById('zahlung-zweck').value || '';
+            function fmtD(iso) { return iso ? iso.split('-').reverse().join('.') : 'tt.mm.jjjj'; }
+            var d1 = fmtD(datum1Raw);
+            var d2 = fmtD(datum2Raw);
+            var zahlungHTML = '<div style="margin-top:8px;padding:12px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;">' +
+                '<strong>Zahlungsmodalitäten:</strong><br><br>' +
+                '&#x2022;&nbsp;<strong>' + fmtEuro(anzahlung) + ' €</strong> des Gesamtbetrages werden mit Bestätigung der Veranstaltung sofort fällig (spätestens am ' + d1 + ').<br><br>' +
+                '&#x2022;&nbsp;Der Restbetrag ist zwei Wochen nach Event fällig (spätestens am ' + d2 + ').<br><br>' +
+                '<span style="font-size:8.5pt;">Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>Verwendungszweck: ' + zweck + '</span>' +
+                '</div>';
+            addElement(zahlungHTML);
+        }
     }
 
     init();
