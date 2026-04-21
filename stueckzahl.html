@@ -172,13 +172,13 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     <option value="fritteuse">Fritteuse</option>
                 </optgroup>
                 <optgroup label="Pastrami Sandwiches">
-                    <option value="ps_sally">Pastrami Sandwich Sally</option>
                     <option value="ps_harry">Pastrami Sandwich Harry</option>
+                    <option value="ps_sally">Pastrami Sandwich Sally</option>
                     <option value="ps_maxi">Pastrami Sandwich Maxi</option>
                 </optgroup>
                 <optgroup label="Pastrami Bowls">
-                    <option value="pb_sally">Pastrami Bowl Sally</option>
                     <option value="pb_harry">Pastrami Bowl Harry</option>
+                    <option value="pb_sally">Pastrami Bowl Sally</option>
                     <option value="pb_maxi">Pastrami Bowl Maxi</option>
                 </optgroup>
                 <optgroup label="Klassiker">
@@ -244,6 +244,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     </div>
 
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+    <button class="btn" style="background:#f39c12;margin-top:10px;font-size:14px;" onclick="saveDraft()">💾 ENTWURF SPEICHERN</button>
 </div>
 
 <div class="preview-panel">
@@ -303,7 +304,65 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             window._date = "am " + formatDate(p.get('date'));
             window._today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
         }
+
+        // Gespeicherten Entwurf wiederherstellen
+        var draftIndex = p.get('draftIndex');
+        if (draftIndex !== null) {
+            try {
+                var drafts = JSON.parse(localStorage.getItem('laras_drafts') || '[]');
+                var d = drafts[parseInt(draftIndex)];
+                if (d && d.editorState) {
+                    var s = d.editorState;
+                    if (s.intro) document.getElementById('inp-intro').value = s.intro;
+                    if (s.zahlungToggle !== undefined) {
+                        document.getElementById('zahlung-toggle').checked = s.zahlungToggle;
+                        toggleZahlung();
+                    }
+                    if (s.zahlungAnzahlung) document.getElementById('zahlung-anzahlung').value = s.zahlungAnzahlung;
+                    if (s.zahlungDatum1) document.getElementById('zahlung-datum1').value = s.zahlungDatum1;
+                    if (s.zahlungDatum2) document.getElementById('zahlung-datum2').value = s.zahlungDatum2;
+                    if (s.zahlungZweck) document.getElementById('zahlung-zweck').value = s.zahlungZweck;
+                    if (s.trucks) { trucks = s.trucks; updateTruckList(); render(); }
+                }
+            } catch(e) {}
+        }
+
         renderCover();
+    }
+
+    function saveDraft() {
+        var p = new URLSearchParams(window.location.search);
+        var editorState = {
+            intro: document.getElementById('inp-intro').value,
+            zahlungToggle: document.getElementById('zahlung-toggle').checked,
+            zahlungAnzahlung: document.getElementById('zahlung-anzahlung').value,
+            zahlungDatum1: document.getElementById('zahlung-datum1').value,
+            zahlungDatum2: document.getElementById('zahlung-datum2').value,
+            zahlungZweck: document.getElementById('zahlung-zweck').value,
+            trucks: trucks
+        };
+        var draft = {
+            page: 'stueckzahl.html',
+            recipient: p.get('recipient') || '',
+            event: p.get('event') || window._event || '',
+            location: p.get('location') || '',
+            time: p.get('time') || '',
+            date: p.get('date') || '',
+            offerId: p.get('offerId') || window._offerId || '',
+            validUntil: p.get('validUntil') || '',
+            savedAt: new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
+            editorState: editorState
+        };
+        var drafts = [];
+        try { drafts = JSON.parse(localStorage.getItem('laras_drafts') || '[]'); } catch(e) {}
+        var draftIndex = p.get('draftIndex');
+        if (draftIndex !== null && drafts[parseInt(draftIndex)]) {
+            drafts[parseInt(draftIndex)] = draft;
+        } else {
+            drafts.unshift(draft);
+        }
+        localStorage.setItem('laras_drafts', JSON.stringify(drafts));
+        alert('✅ Entwurf gespeichert!');
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
