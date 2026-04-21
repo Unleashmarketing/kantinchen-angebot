@@ -128,6 +128,33 @@
         @media (max-width: 600px) {
             .grid-row, .type-grid { grid-template-columns: 1fr; }
         }
+
+        /* --- Gespeicherte Entwürfe --- */
+        .drafts-section { margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 25px; }
+        .drafts-section h3 { color: var(--primary-color); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .draft-list { display: flex; flex-direction: column; gap: 10px; }
+        .draft-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #fdfaf9; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 12px 16px; gap: 10px;
+        }
+        .draft-info { flex: 1; min-width: 0; }
+        .draft-info .draft-title { font-weight: 700; font-size: 13px; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .draft-info .draft-meta { font-size: 11px; color: #999; margin-top: 2px; }
+        .draft-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-draft-open {
+            background: var(--primary-color); color: white; border: none;
+            border-radius: 5px; padding: 7px 14px; font-size: 12px; font-weight: 700;
+            cursor: pointer; white-space: nowrap;
+        }
+        .btn-draft-open:hover { opacity: 0.85; }
+        .btn-draft-del {
+            background: none; color: #c0392b; border: 1px solid #c0392b;
+            border-radius: 5px; padding: 7px 10px; font-size: 12px; font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-draft-del:hover { background: #fdecea; }
+        .no-drafts { font-size: 13px; color: #bbb; font-style: italic; }
     </style>
 </head>
 <body>
@@ -196,6 +223,12 @@
             <h4>Pro Person</h4>
         </div>
     </div>
+    
+    <!-- Gespeicherte Entwürfe -->
+    <div class="drafts-section" id="drafts-section" style="display:none;">
+        <h3>📂 Gespeicherte Entwürfe</h3>
+        <div class="draft-list" id="draft-list"></div>
+    </div>
 </div>
 
 <script>
@@ -205,20 +238,60 @@
         validUntil.setDate(validUntil.getDate() + 11);
         document.getElementById('inp-valid-until').valueAsDate = validUntil;
 
-        // Lädt die letzte Nummer oder startet bei 50
         let lastNum = localStorage.getItem('laras_last_id') || 50;
         let nextNum = parseInt(lastNum) + 1;
         const currentYear = new Date().getFullYear();
-        
-        // Schreibt die Nummer ins Feld (jetzt editierbar)
         document.getElementById('inp-offer-id').value = "A-" + nextNum.toString().padStart(3, '0') + "-" + currentYear;
+
+        renderDrafts();
+    }
+
+    function getDrafts() {
+        try { return JSON.parse(localStorage.getItem('laras_drafts') || '[]'); } catch(e) { return []; }
+    }
+
+    function saveDrafts(drafts) {
+        localStorage.setItem('laras_drafts', JSON.stringify(drafts));
+    }
+
+    function renderDrafts() {
+        const drafts = getDrafts();
+        const section = document.getElementById('drafts-section');
+        const list = document.getElementById('draft-list');
+        if (drafts.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = '';
+        const typeLabels = { 'getraenke.html': 'Getränke', 'mindestabnahme.html': 'Mindestmenge', 'stueckzahl.html': 'Stückzahl', 'pro-person.html': 'Pro Person' };
+        list.innerHTML = drafts.map((d, i) => `
+            <div class="draft-item">
+                <div class="draft-info">
+                    <div class="draft-title">${d.offerId || '–'} · ${d.event || '(kein Event)'}</div>
+                    <div class="draft-meta">${typeLabels[d.page] || d.page} · gespeichert ${d.savedAt || ''}</div>
+                </div>
+                <div class="draft-actions">
+                    <button class="btn-draft-open" onclick="openDraft(${i})">Öffnen</button>
+                    <button class="btn-draft-del" onclick="deleteDraft(${i})">✕</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function openDraft(index) {
+        const drafts = getDrafts();
+        const d = drafts[index];
+        if (!d) return;
+        const params = new URLSearchParams(d);
+        window.location.href = d.page + '?' + params.toString() + '&draftIndex=' + index;
+    }
+
+    function deleteDraft(index) {
+        const drafts = getDrafts();
+        drafts.splice(index, 1);
+        saveDrafts(drafts);
+        renderDrafts();
     }
 
     function submitTo(targetPage) {
         const offerIdField = document.getElementById('inp-offer-id').value;
         
-        // Logik zum Speichern der Nummer:
-        // Wir extrahieren die Zahl aus dem String (z.B. aus "A-065-2026" wird 65)
         const match = offerIdField.match(/-(\d+)-/);
         if (match && match[1]) {
             localStorage.setItem('laras_last_id', parseInt(match[1]));
