@@ -216,6 +216,7 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
     </div>
 
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
+    <button class="btn" style="background:#f39c12;margin-top:10px;font-size:14px;" onclick="saveDraft()">💾 ENTWURF SPEICHERN</button>
 </div>
 
 <div class="preview-panel">
@@ -265,7 +266,60 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
             window._date = "am " + formatDate(p.get('date'));
             window._today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
         }
+
+        // Gespeicherten Entwurf wiederherstellen
+        const draftIndex = p.get('draftIndex');
+        if (draftIndex !== null) {
+            try {
+                const drafts = JSON.parse(localStorage.getItem('laras_drafts') || '[]');
+                const d = drafts[parseInt(draftIndex)];
+                if (d && d.editorState) {
+                    const s = d.editorState;
+                    if (s.intro) document.getElementById('edit-intro').value = s.intro;
+                    if (s.minUmsatz) document.getElementById('inp-min-umsatz').value = s.minUmsatz;
+                    if (s.perPerson) document.getElementById('inp-per-person').value = s.perPerson;
+                    if (s.minPersons) document.getElementById('inp-min-persons').value = s.minPersons;
+                    if (s.zahlungTage) document.getElementById('zahlung-tage').value = s.zahlungTage;
+                    if (s.stands) { stands = s.stands; updateStandList(); render(); }
+                }
+            } catch(e) {}
+        }
+
         renderCover();
+    }
+
+    function saveDraft() {
+        const p = new URLSearchParams(window.location.search);
+        const editorState = {
+            intro: document.getElementById('edit-intro').value,
+            minUmsatz: document.getElementById('inp-min-umsatz').value,
+            perPerson: document.getElementById('inp-per-person').value,
+            minPersons: document.getElementById('inp-min-persons').value,
+            zahlungTage: document.getElementById('zahlung-tage').value,
+            stands: stands
+        };
+        const draft = {
+            page: 'getraenke.html',
+            recipient: p.get('recipient') || '',
+            event: p.get('event') || window._event || '',
+            location: p.get('location') || '',
+            time: p.get('time') || '',
+            date: p.get('date') || '',
+            offerId: p.get('offerId') || window._offerId || '',
+            validUntil: p.get('validUntil') || '',
+            savedAt: new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
+            editorState: editorState
+        };
+        let drafts = [];
+        try { drafts = JSON.parse(localStorage.getItem('laras_drafts') || '[]'); } catch(e) {}
+        const draftIndex = p.get('draftIndex');
+        if (draftIndex !== null && drafts[parseInt(draftIndex)]) {
+            drafts[parseInt(draftIndex)] = draft;
+        } else {
+            drafts.unshift(draft);
+        }
+        localStorage.setItem('laras_drafts', JSON.stringify(drafts));
+        alert('✅ Entwurf gespeichert!');
     }
 
     function formatDate(iso) { return iso ? iso.split('-').reverse().join('.') : ''; }
