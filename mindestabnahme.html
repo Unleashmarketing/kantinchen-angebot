@@ -194,8 +194,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
     <h2>4. Zahlungsmodalitäten</h2>
     <div class="section-box">
         <div class="form-group">
-            <label>Fällig nach Rechnungsstellung (Tage)</label>
-            <input type="number" id="zahlung-tage" value="7" min="1" oninput="render()">
+            <label>Zahlungstext (frei editierbar)</label>
+            <textarea id="zahlung-text" rows="4" oninput="render()">Der evtl. Ausgleichsbetrag ist innerhalb 7 Tagen nach Rechnungsstellung fällig.</textarea>
         </div>
     </div>
 
@@ -264,7 +264,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     if (s.intro) document.getElementById('inp-intro').value = s.intro;
                     if (s.qty) document.getElementById('inp-qty').value = s.qty;
                     if (s.price) document.getElementById('inp-price').value = s.price;
-                    if (s.zahlungTage) document.getElementById('zahlung-tage').value = s.zahlungTage;
+                    if (s.zahlungText) document.getElementById('zahlung-text').value = s.zahlungText;
                     if (s.trucks) { trucks = s.trucks; updateTruckList(); render(); }
                 }
             } catch(e) {}
@@ -279,7 +279,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             intro: document.getElementById('inp-intro').value,
             qty: document.getElementById('inp-qty').value,
             price: document.getElementById('inp-price').value,
-            zahlungTage: document.getElementById('zahlung-tage').value,
+            zahlungText: document.getElementById('zahlung-text').value,
             trucks: trucks
         };
         var draft = {
@@ -596,8 +596,8 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         }
 
         // Zahlungshinweis
-        var zahlungTage = parseInt(document.getElementById('zahlung-tage').value) || 7;
-        addElement('<div style="margin-top:8px;padding:10px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;font-weight:bold;color:#1a5276;">Der evtl. Ausgleichsbetrag ist innerhalb ' + zahlungTage + ' Tagen nach Rechnungsstellung fällig.</div>');
+        var zahlungText = document.getElementById('zahlung-text').value || '';
+        addElement('<div style="margin-top:8px;padding:10px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;font-weight:bold;color:#1a5276;">' + zahlungText + '</div>');
     }
 
     init();
