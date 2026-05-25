@@ -44,7 +44,7 @@
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 30mm; }
+        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 2mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 10mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -568,8 +568,8 @@ SOLLTEN SIE UNSER ANGEBOT ANNEHMEN, NEHMEN SIE AUCH DAS RISIKO AUF SICH, UND MÜ
         stands.forEach(function(stand) {
             // Servicegebühr
             addRow('<tr>' +
-                '<td colspan="2"><div class="drink-title">Servicegebühr inkl. Auf- und Abbau</div>' +
-                '<div class="drink-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Leihgebühr, Fahrtkosten und Reinigung</div></td>' +
+                '<td colspan="2"><div class="drink-title">Miet- und Servicegebühr</div>' +
+                '<div class="drink-desc">Inkl. Anfahrtskosten für 1 Oldtimer Truck, Auf- und Abbau, 3 Stunden Verköstigungszeit mit 2 x Personal, Vorbereitung, Bioverpackungen und Biobesteck, Servietten, Palmblattteller, Tafeln, Kräutertöpfe, Fahrtkosten und Reinigung</div></td>' +
                 '<td align="right">' + fmtEuro(stand.service) + ' €</td></tr>',
                 stand.name, stand.id);
 
