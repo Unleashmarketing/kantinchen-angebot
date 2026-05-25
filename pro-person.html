@@ -50,7 +50,7 @@
         }
 
         .header-logo { position: absolute; top: 15mm; right: 20mm; width: 40mm; }
-        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 30mm; }
+        .sender-line { font-size: 7.5pt; color: #000; text-decoration: none; margin-bottom: 2mm; }
         .address-box { font-size: 11pt; margin-bottom: 15mm; line-height: 1.4; min-height: 10mm; }
         .event-info { font-size: 10pt; margin-bottom: 5mm; border-collapse: collapse; }
         .event-info td { padding: 3px 0; }
@@ -612,8 +612,8 @@ Mindestpersonenanzahl (Vollzahler): {MINDEST_PERSONEN}</textarea>
         trucks.forEach(function(truck) {
             // Servicegebühr inkl. Auf- und Abbau — nur wenn aktiviert
             if (truck.showService) {
-                addRow('<tr><td><div class="product-title">Servicegebühr inkl. Auf- und Abbau</div>' +
-                    '<div class="product-desc">inkl. Verköstigungszeit, Personal, Vorbereitung, Bioverpackungen, Servietten, Fahrtkosten und Reinigung</div></td>' +
+                addRow('<tr><td><div class="product-title">Miet- und Servicegebühr</div>' +
+                    '<div class="product-desc">Inkl. Anfahrtskosten für 1 Oldtimer Truck, Auf- und Abbau, 3 Stunden Verköstigungszeit mit 2 x Personal, Vorbereitung, Bioverpackungen und Biobesteck, Servietten, Palmblattteller, Tafeln, Kräutertöpfe, Fahrtkosten und Reinigung</div></td>' +
                     '<td align="center">1</td><td align="right">' + fmtEuro(truck.service) + ' €</td></tr>',
                     truck.name, truck.id, 'person-table', truckTheadHTML(truck.name, truck.id), truckContTheadHTML(truck.name));
             }
