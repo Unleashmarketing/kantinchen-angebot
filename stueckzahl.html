@@ -226,24 +226,24 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         <div class="zahlung-fields" id="zahlung-fields">
             <div class="form-group">
                 <label>Anzahlung (€)</label>
-                <input type="number" id="zahlung-anzahlung" value="0" step="0.01" oninput="render()">
+                <input type="number" id="zahlung-anzahlung" data-syncs-zahlung="1" value="0" step="0.01" oninput="render()">
             </div>
             <div class="form-group">
                 <label>Fällig spätestens am (Anzahlung)</label>
-                <input type="date" id="zahlung-datum1" oninput="render()">
+                <input type="date" id="zahlung-datum1" data-syncs-zahlung="1" oninput="render()">
             </div>
             <div class="form-group">
                 <label>Restbetrag fällig spätestens am</label>
-                <input type="date" id="zahlung-datum2" oninput="render()">
+                <input type="date" id="zahlung-datum2" data-syncs-zahlung="1" oninput="render()">
             </div>
             <div class="form-group">
                 <label>Verwendungszweck</label>
-                <input type="text" id="zahlung-zweck" placeholder="z.B. Angebot A-015-2026" oninput="render()">
+                <input type="text" id="zahlung-zweck" data-syncs-zahlung="1" placeholder="z.B. Angebot A-015-2026" oninput="render()">
             </div>
         </div>
         <div class="form-group" style="margin-top:10px;">
-            <label>Zusatztext (frei editierbar)</label>
-            <textarea id="zahlung-zusatz" rows="3" oninput="render()" placeholder="z.B. weitere Hinweise zur Zahlung..."></textarea>
+            <label>Zahlungstext (frei editierbar)</label>
+            <textarea id="zahlung-text" rows="6" oninput="_zahlungUserEdited=true;render()"></textarea>
         </div>
     </div>
 
@@ -284,7 +284,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
 
     const FOOTER_HTML = '<div class="document-footer">' +
         '<div class="footer-col"><strong>Laras Kantinchen</strong><br>Chr.-Kröwerath-Str. 132<br>67071 Ludwigshafen</div>' +
-        '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>Fax: 06 21 - 65 05 57 96<br>info@laras-kantinchen.de</div>' +
+        '<div class="footer-col">Fon: 01 72 - 6 67 67 87<br>info@laras-kantinchen.de</div>' +
         '<div class="footer-col">Sparkasse Rhein-Haardt<br>IBAN: DE31 5465 1240 0006 1170 63</div>' +
         '<div class="footer-col">Michaela Breyer<br>USt-Id Nr. DE30 627 68 78<br>Steuer-Nr.: 27/149/80446</div>' +
     '</div>';
@@ -326,7 +326,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     if (s.zahlungDatum1) document.getElementById('zahlung-datum1').value = s.zahlungDatum1;
                     if (s.zahlungDatum2) document.getElementById('zahlung-datum2').value = s.zahlungDatum2;
                     if (s.zahlungZweck) document.getElementById('zahlung-zweck').value = s.zahlungZweck;
-                    if (s.zahlungZusatz !== undefined) document.getElementById('zahlung-zusatz').value = s.zahlungZusatz;
+                    if (s.zahlungText !== undefined) { document.getElementById('zahlung-text').value = s.zahlungText; _zahlungUserEdited = true; }
                     if (s.trucks) { trucks = s.trucks; updateTruckList(); render(); }
                 }
             } catch(e) {}
@@ -344,7 +344,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             zahlungDatum1: document.getElementById('zahlung-datum1').value,
             zahlungDatum2: document.getElementById('zahlung-datum2').value,
             zahlungZweck: document.getElementById('zahlung-zweck').value,
-            zahlungZusatz: document.getElementById('zahlung-zusatz').value,
+            zahlungText: document.getElementById('zahlung-text').value,
             trucks: trucks
         };
         var draft = {
@@ -497,6 +497,21 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         render();
     }
 
+    function buildZahlungText() {
+        var anzahlung = parseFloat(document.getElementById('zahlung-anzahlung').value) || 0;
+        var datum1Raw = document.getElementById('zahlung-datum1').value;
+        var datum2Raw = document.getElementById('zahlung-datum2').value;
+        var zweck = document.getElementById('zahlung-zweck').value || '';
+        function fmtD(iso) { return iso ? iso.split('-').reverse().join('.') : 'tt.mm.jjjj'; }
+        var d1 = fmtD(datum1Raw); var d2 = fmtD(datum2Raw);
+        return 'Zahlungsmodalitäten:\n\n' +
+            '• ' + fmtEuro(anzahlung) + ' € des Gesamtbetrages werden mit Bestätigung der Veranstaltung sofort fällig (spätestens am ' + d1 + ').\n\n' +
+            '• Der Restbetrag ist zwei Wochen nach Event fällig (spätestens am ' + d2 + ').\n\n' +
+            'Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt, Verwendungszweck: ' + zweck;
+    }
+
+    var _zahlungUserEdited = false;
+
     function render() {
         var pagesContainer = document.getElementById('offer-pages');
         pagesContainer.innerHTML = '';
@@ -619,31 +634,24 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
         }
 
         // Zahlungsblock nur wenn Toggle aktiv
+        // Sync textarea with fields (unless user has manually edited)
+        var ta = document.getElementById('zahlung-text');
+        if (!_zahlungUserEdited) { ta.value = buildZahlungText(); }
+
         var zahlungAktiv = document.getElementById('zahlung-toggle').checked;
         if (zahlungAktiv) {
-            var anzahlung = parseFloat(document.getElementById('zahlung-anzahlung').value) || 0;
-            var datum1Raw = document.getElementById('zahlung-datum1').value;
-            var datum2Raw = document.getElementById('zahlung-datum2').value;
-            var zweck = document.getElementById('zahlung-zweck').value || '';
-            function fmtD(iso) { return iso ? iso.split('-').reverse().join('.') : 'tt.mm.jjjj'; }
-            var d1 = fmtD(datum1Raw);
-            var d2 = fmtD(datum2Raw);
-            var zahlungHTML = '<div style="margin-top:8px;padding:12px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;">' +
-                '<strong>Zahlungsmodalitäten:</strong><br><br>' +
-                '&#x2022;&nbsp;<strong>' + fmtEuro(anzahlung) + ' €</strong> des Gesamtbetrages werden mit Bestätigung der Veranstaltung sofort fällig (spätestens am ' + d1 + ').<br><br>' +
-                '&#x2022;&nbsp;Der Restbetrag ist zwei Wochen nach Event fällig (spätestens am ' + d2 + ').<br><br>' +
-                '<span style="font-size:8.5pt;">Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>Verwendungszweck: ' + zweck + '</span>' +
-                '</div>';
+            var zahlungTxt = document.getElementById('zahlung-text').value;
+            var zahlungHTML = '<div style="margin-top:8px;padding:12px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;white-space:pre-wrap;">' + zahlungTxt + '</div>';
             addElement(zahlungHTML);
-            var zusatz = document.getElementById('zahlung-zusatz').value;
-            if (zusatz) {
-                var zusatzHTML = '<div style="margin-top:6px;padding:10px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;white-space:pre-wrap;">' + zusatz + '</div>';
-                addElement(zusatzHTML);
-            }
         }
     }
 
     init();
+
+    // When structured fields change, reset manual-edit flag so textarea re-syncs
+    document.querySelectorAll('[data-syncs-zahlung]').forEach(function(el) {
+        el.addEventListener('input', function() { _zahlungUserEdited = false; });
+    });
 </script>
 </body>
 </html>
