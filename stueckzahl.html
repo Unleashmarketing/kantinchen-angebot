@@ -241,6 +241,10 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 <input type="text" id="zahlung-zweck" placeholder="z.B. Angebot A-015-2026" oninput="render()">
             </div>
         </div>
+        <div class="form-group" style="margin-top:10px;">
+            <label>Zusatztext (frei editierbar)</label>
+            <textarea id="zahlung-zusatz" rows="3" oninput="render()" placeholder="z.B. weitere Hinweise zur Zahlung..."></textarea>
+        </div>
     </div>
 
     <button class="btn btn-print" onclick="window.print()">ANGEBOT DRUCKEN (PDF)</button>
@@ -322,6 +326,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                     if (s.zahlungDatum1) document.getElementById('zahlung-datum1').value = s.zahlungDatum1;
                     if (s.zahlungDatum2) document.getElementById('zahlung-datum2').value = s.zahlungDatum2;
                     if (s.zahlungZweck) document.getElementById('zahlung-zweck').value = s.zahlungZweck;
+                    if (s.zahlungZusatz !== undefined) document.getElementById('zahlung-zusatz').value = s.zahlungZusatz;
                     if (s.trucks) { trucks = s.trucks; updateTruckList(); render(); }
                 }
             } catch(e) {}
@@ -339,6 +344,7 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
             zahlungDatum1: document.getElementById('zahlung-datum1').value,
             zahlungDatum2: document.getElementById('zahlung-datum2').value,
             zahlungZweck: document.getElementById('zahlung-zweck').value,
+            zahlungZusatz: document.getElementById('zahlung-zusatz').value,
             trucks: trucks
         };
         var draft = {
@@ -629,6 +635,11 @@ Wir freuen uns auf Ihre Rückmeldung!</textarea>
                 '<span style="font-size:8.5pt;">Michaela Breyer, Laras Kantinchen, IBAN: DE31 5465 1240 0006 1170 63, Sparkasse Rhein-Haardt,<br>Verwendungszweck: ' + zweck + '</span>' +
                 '</div>';
             addElement(zahlungHTML);
+            var zusatz = document.getElementById('zahlung-zusatz').value;
+            if (zusatz) {
+                var zusatzHTML = '<div style="margin-top:6px;padding:10px 14px;background:#e8f4fd;border:2px solid #2980b9;border-radius:5px;font-size:9.5pt;color:#1a5276;white-space:pre-wrap;">' + zusatz + '</div>';
+                addElement(zusatzHTML);
+            }
         }
     }
 
